@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>考研/考试 极简工作台</title>
+    <style>
+        :root {
+            --bg-color: #f4f5f7;
+            --card-bg: #ffffff;
+            --text-main: #333333;
+            --text-sub: #888888;
+            --primary: #4a90e2;
+            --danger-bg: #ffebeb;
+            --danger-text: #d0021b;
+            --success-bg: #e6f9ec;
+            --success-text: #198754;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); padding-bottom: 80px; }
+        
+        /* 顶部全局控制台 */
+        #overview {
+            padding: 30px 20px;
+            text-align: center;
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
+            transition: background-color 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        .status-danger { background-color: var(--danger-bg); color: var(--danger-text); }
+        .status-success { background-color: var(--success-bg); color: var(--success-text); }
+        
+        #overview h1 { font-size: 24px; margin-bottom: 10px; }
+        #daily-progress { font-size: 36px; font-weight: bold; margin: 10px 0; }
+        .warning-text { font-size: 14px; font-weight: bold; margin-top: 10px; }
+        .total-progress { font-size: 14px; margin-top: 15px; opacity: 0.9; }
+
+        /* 模块卡片列表 */
+        .container { padding: 20px; }
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .card-left { flex: 1; }
+        .card-title { font-size: 16px; font-weight: bold; margin-bottom: 6px; display: flex; align-items: center; gap: 8px;}
+        .edit-btn { font-size: 12px; color: var(--primary); background: none; border: 1px solid var(--primary); border-radius: 4px; padding: 2px 6px; cursor: pointer; }
+        .card-stats { font-size: 12px; color: var(--text-sub); margin-bottom: 8px; }
+        
+        /* 进度条 */
+        .progress-bar-bg { width: 100%; height: 6px; background: #e0e0e0; border-radius: 3px; overflow: hidden; }
+        .progress-bar-fill { height: 100%; background: var(--primary); transition: width 0.3s; }
+        
+        .card-right { margin-left: 15px; }
+        .add-btn {
+            background: var(--primary); color: white; border: none;
+            width: 40px; height: 40px; border-radius: 20px;
+            font-size: 20px; font-weight: bold; cursor: pointer;
+            box-shadow: 0 2px 6px rgba(74, 144, 226, 0.4);
+        }
+
+        /* 底部记录弹窗 */
+        #record-modal {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            background: white; border-top-left-radius: 20px; border-top-right-radius: 20px;
+            padding: 20px; box-shadow: 0 -4px 15px rgba(0,0,0,0.1);
+            transform: translateY(100%); transition: transform 0.3s ease;
+            z-index: 100;
+        }
+        #record-modal.active { transform: translateY(0); }
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); display: none; z-index: 99;
+        }
+        .modal-overlay.active { display: block; }
+        
+        .modal-title { font-size: 18px; font-weight: bold; margin-bottom: 15px; text-align: center; }
+        .quick-add-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .quick-btn { padding: 12px; background: #f0f4f8; border: none; border-radius: 8px; font-size: 16px; color: var(--primary); font-weight: bold; }
+        .close-btn { width: 100%; padding: 12px; background: #eee; border: none; border-radius: 8px; font-size: 16px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+    <!-- 顶部状态栏 -->
+    <div id="overview" class="status-danger">
+        <h1>今日必须学够 4.4 小时</h1>
+        <div id="daily-progress">0.0 / 4.4 h</div>
+        <div class="warning-text" id="warning-msg">距离落榜又近了一天，今天欠的账拿什么还？！</div>
+        <div class="total-progress">全局总进度: <span id="total-done">0</span> / <span id="total-target">225</span> 小时</div>
+    </div>
+
+    <!-- 模块列表 -->
+    <div class="container" id="module-list">
+        <!-- 卡片由JS动态生成 -->
+    </div>
+
+    <!-- 弹窗遮罩与内容 -->
+    <div class="modal-overlay" id="overlay" onclick="closeModal()"></div>
+    <div id="record-modal">
+        <div class="modal-title" id="modal-module-name">记录学习时长</div>
+        <div class="quick-add-grid">
+            <button class="quick-btn" onclick="addTime(0.5)">+ 0.5h</button>
+            <button class="quick-btn" onclick="addTime(1.0)">+ 1.0h</button>
+            <button class="quick-btn" onclick="addTime(2.0)">+ 2.0h</button>
+        </div>
+        <button class="close-btn" onclick="closeModal()">取消</button>
+    </div>
+
+    <script>
+        // 初始默认数据设置（如果本地没有存过）
+        const defaultModules = [
+            { id: 1, name: "法律 (零基础/刷题)", target: 60, current: 0 },
+            { id: 2, name: "政治 (马哲/中特)", target: 50, current: 0 },
+            { id: 3, name: "公文及常识", target: 15, current: 0 },
+            { id: 4, name: "资料分析与判断", target: 35, current: 0 },
+            { id: 5, name: "言语与数量", target: 15, current: 0 },
+            { id: 6, name: "全真套卷模考", target: 50, current: 0 }
+        ];
+
+        let modules = JSON.parse(localStorage.getItem('examModules')) || defaultModules;
+        
+        // 每日重置逻辑处理
+        const todayStr = new Date().toLocaleDateString();
+        let storedDate = localStorage.getItem('lastRecordDate');
+        let todayLogged = parseFloat(localStorage.getItem('todayLogged')) || 0;
+
+        if (storedDate !== todayStr) {
+            todayLogged = 0;
+            localStorage.setItem('lastRecordDate', todayStr);
+            localStorage.setItem('todayLogged', 0);
+        }
+
+        let currentEditingModuleId = null;
+
+        // 初始化渲染
+        function render() {
+            const list = document.getElementById('module-list');
+            list.innerHTML = '';
+            
+            let totalDone = 0;
+            let totalTarget = 0;
+
+            modules.forEach(mod => {
+                totalDone += mod.current;
+                totalTarget += mod.target;
+                
+                const percent = Math.min((mod.current / mod.target) * 100, 100).toFixed(1);
+                const diff = (mod.target - mod.current).toFixed(1);
+                
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <div class="card-left">
+                        <div class="card-title">
+                            ${mod.name} 
+                            <button class="edit-btn" onclick="editTarget(${mod.id})">✏️修改目标</button>
+                        </div>
+                        <div class="card-stats">进度: ${mod.current.toFixed(1)} / ${mod.target}h (还差 ${diff > 0 ? diff : 0}h)</div>
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill" style="width: ${percent}%"></div>
+                        </div>
+                    </div>
+                    <div class="card-right">
+                        <button class="add-btn" onclick="openModal(${mod.id}, '${mod.name}')">+</button>
+                    </div>
+                `;
+                list.appendChild(card);
+            });
+
+            // 更新顶部控制台
+            document.getElementById('total-done').innerText = totalDone.toFixed(1);
+            document.getElementById('total-target').innerText = totalTarget.toFixed(1);
+            document.getElementById('daily-progress').innerText = `${todayLogged.toFixed(1)} / 4.4 h`;
+
+            const overview = document.getElementById('overview');
+            const msg = document.getElementById('warning-msg');
+            
+            if (todayLogged >= 4.4) {
+                overview.className = 'status-success';
+                msg.innerText = "今日死线已过关。保持这个狠劲，早点休息。";
+            } else {
+                overview.className = 'status-danger';
+                msg.innerText = "距离落榜又近了一天，今天欠的账拿什么还？！";
+            }
+
+            // 保存数据到本地
+            localStorage.setItem('examModules', JSON.stringify(modules));
+            localStorage.setItem('todayLogged', todayLogged);
+        }
+
+        // 修改目标时长
+        function editTarget(id) {
+            const mod = modules.find(m => m.id === id);
+            const newTarget = prompt(`请输入【${mod.name}】的最新总目标时长 (当前为 ${mod.target} 小时):`, mod.target);
+            
+            if (newTarget !== null && !isNaN(newTarget) && newTarget > 0) {
+                mod.target = parseFloat(newTarget);
+                render();
+            }
+        }
+
+        // 弹窗操作
+        function openModal(id, name) {
+            currentEditingModuleId = id;
+            document.getElementById('modal-module-name').innerText = `记录【${name}】学习`;
+            document.getElementById('record-modal').classList.add('active');
+            document.getElementById('overlay').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('record-modal').classList.remove('active');
+            document.getElementById('overlay').classList.remove('active');
+            currentEditingModuleId = null;
+        }
+
+        function addTime(hours) {
+            if (currentEditingModuleId !== null) {
+                const mod = modules.find(m => m.id === currentEditingModuleId);
+                mod.current += hours;
+                todayLogged += hours;
+                render();
+                closeModal();
+            }
+        }
+
+        // 初始执行
+        render();
+    </script>
+</body>
+</html>
