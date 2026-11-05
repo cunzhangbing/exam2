@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>考研/考试 极简工作台</title>
+    <title>考研/考试 极简工作台 V2</title>
     <style>
         :root {
             --bg-color: #f4f5f7;
@@ -11,226 +11,327 @@
             --text-main: #333333;
             --text-sub: #888888;
             --primary: #4a90e2;
-            --danger-bg: #ffebeb;
-            --danger-text: #d0021b;
             --success-bg: #e6f9ec;
-            --success-text: #198754;
+            --success-text: #87CEEB; /* 天蓝色 */
+            --danger-bg: #2c3e50; /* 深色背景衬托亮黄 */
+            --danger-text: #FFD700; /* 亮黄色 */
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; }
         body { background-color: var(--bg-color); color: var(--text-main); padding-bottom: 80px; }
         
         /* 顶部全局控制台 */
         #overview {
-            padding: 30px 20px;
-            text-align: center;
-            border-bottom-left-radius: 20px;
-            border-bottom-right-radius: 20px;
-            transition: background-color 0.3s ease;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            padding: 25px 20px; text-align: center;
+            border-bottom-left-radius: 20px; border-bottom-right-radius: 20px;
+            transition: all 0.3s ease; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
-        .status-danger { background-color: var(--danger-bg); color: var(--danger-text); }
-        .status-success { background-color: var(--success-bg); color: var(--success-text); }
+        .status-danger { background-color: var(--danger-bg); color: #fff; }
+        .status-danger #quote-msg { color: var(--danger-text); font-weight: 900; }
+        .status-success { background-color: var(--success-bg); color: #333; }
+        .status-success #quote-msg { color: var(--success-text); font-weight: 900; }
         
-        #overview h1 { font-size: 24px; margin-bottom: 10px; }
-        #daily-progress { font-size: 36px; font-weight: bold; margin: 10px 0; }
-        .warning-text { font-size: 14px; font-weight: bold; margin-top: 10px; }
-        .total-progress { font-size: 14px; margin-top: 15px; opacity: 0.9; }
+        #date-display { font-size: 14px; opacity: 0.8; margin-bottom: 10px; }
+        #quote-msg { font-size: 22px; margin: 10px 0; letter-spacing: 2px;}
+        #daily-progress { font-size: 32px; font-weight: bold; margin: 5px 0; }
+        .total-progress { font-size: 14px; margin-top: 10px; opacity: 0.9; }
+
+        /* 血条设计 */
+        .hp-container { margin: 15px auto; width: 100%; max-width: 350px; background: #222; border-radius: 10px; border: 2px solid #555; position: relative; overflow: hidden; box-shadow: inset 0 0 5px rgba(0,0,0,0.8); }
+        .hp-fill { height: 18px; background: linear-gradient(90deg, #ff416c, #ff4b2b); width: 100%; transition: width 0.5s ease-out; }
+        .hp-text { position: absolute; width: 100%; text-align: center; color: white; font-size: 11px; line-height: 18px; font-weight: bold; top: 0; left: 0; text-shadow: 1px 1px 2px black;}
 
         /* 模块卡片列表 */
-        .container { padding: 20px; }
-        .card {
-            background: var(--card-bg);
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 15px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+        .container { padding: 15px; }
+        .card { background: var(--card-bg); border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); overflow: hidden; }
+        .card-header { padding: 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
         .card-left { flex: 1; }
         .card-title { font-size: 16px; font-weight: bold; margin-bottom: 6px; display: flex; align-items: center; gap: 8px;}
-        .edit-btn { font-size: 12px; color: var(--primary); background: none; border: 1px solid var(--primary); border-radius: 4px; padding: 2px 6px; cursor: pointer; }
         .card-stats { font-size: 12px; color: var(--text-sub); margin-bottom: 8px; }
-        
-        /* 进度条 */
         .progress-bar-bg { width: 100%; height: 6px; background: #e0e0e0; border-radius: 3px; overflow: hidden; }
         .progress-bar-fill { height: 100%; background: var(--primary); transition: width 0.3s; }
+        .card-right { margin-left: 15px; font-size: 12px; color: #888; }
         
-        .card-right { margin-left: 15px; }
-        .add-btn {
-            background: var(--primary); color: white; border: none;
-            width: 40px; height: 40px; border-radius: 20px;
-            font-size: 20px; font-weight: bold; cursor: pointer;
-            box-shadow: 0 2px 6px rgba(74, 144, 226, 0.4);
-        }
+        /* 细分模块展开区 */
+        .sub-list { background: #fafafa; padding: 10px 15px; border-top: 1px solid #eee; display: none; }
+        .sub-list.active { display: block; }
+        .sub-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px dashed #eee; }
+        .sub-item:last-child { border-bottom: none; }
+        .sub-name { font-size: 14px; color: #444; }
+        .sub-stat { font-size: 12px; color: #888; margin-right: 10px; }
+        .add-btn { background: var(--primary); color: white; border: none; width: 30px; height: 30px; border-radius: 15px; font-size: 18px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(74, 144, 226, 0.4); }
+        .edit-sub-btn { width: 100%; padding: 8px; background: white; border: 1px solid var(--primary); color: var(--primary); border-radius: 6px; font-size: 13px; margin-bottom: 10px; cursor: pointer;}
+
+        /* 算分器卡片 */
+        .calc-card { background: #fff8e1; border-radius: 12px; padding: 16px; margin-top: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .calc-title { font-size: 16px; font-weight: bold; margin-bottom: 15px; text-align: center; color: #d35400; }
+        .calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .calc-item { display: flex; flex-direction: column; font-size: 12px; }
+        .calc-item input { padding: 6px; border: 1px solid #ccc; border-radius: 4px; margin-top: 4px; text-align: center;}
+        .calc-btn { width: 100%; padding: 10px; background: #d35400; color: white; border: none; border-radius: 6px; font-weight: bold; margin-bottom: 10px; }
+        .calc-result { text-align: center; font-size: 18px; font-weight: bold; color: #d35400; margin-bottom: 15px;}
 
         /* 底部记录弹窗 */
-        #record-modal {
-            position: fixed; bottom: 0; left: 0; width: 100%;
-            background: white; border-top-left-radius: 20px; border-top-right-radius: 20px;
-            padding: 20px; box-shadow: 0 -4px 15px rgba(0,0,0,0.1);
-            transform: translateY(100%); transition: transform 0.3s ease;
-            z-index: 100;
-        }
-        #record-modal.active { transform: translateY(0); }
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); display: none; z-index: 99;
-        }
+        .modal { position: fixed; bottom: 0; left: 0; width: 100%; background: white; border-top-left-radius: 20px; border-top-right-radius: 20px; padding: 20px; box-shadow: 0 -4px 15px rgba(0,0,0,0.1); transform: translateY(100%); transition: transform 0.3s ease; z-index: 100; max-height: 85vh; overflow-y: auto;}
+        .modal.active { transform: translateY(0); }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; z-index: 99; }
         .modal-overlay.active { display: block; }
-        
-        .modal-title { font-size: 18px; font-weight: bold; margin-bottom: 15px; text-align: center; }
+        .modal-title { font-size: 16px; font-weight: bold; margin-bottom: 15px; text-align: center; }
         .quick-add-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 15px; }
         .quick-btn { padding: 12px; background: #f0f4f8; border: none; border-radius: 8px; font-size: 16px; color: var(--primary); font-weight: bold; }
         .close-btn { width: 100%; padding: 12px; background: #eee; border: none; border-radius: 8px; font-size: 16px; margin-top: 10px; }
+        
+        .target-input-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 14px;}
+        .target-input-row input { width: 60px; padding: 5px; text-align: center; border: 1px solid #ccc; border-radius: 4px; }
+        .save-btn { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-    <!-- 顶部状态栏 -->
     <div id="overview" class="status-danger">
-        <h1>今日必须学够 4.4 小时</h1>
+        <div id="date-display"></div>
+        <div class="hp-container">
+            <div class="hp-fill" id="hp-fill"></div>
+            <div class="hp-text" id="hp-text">计算中...</div>
+        </div>
+        <h1 id="quote-msg">行百里者半九十</h1>
         <div id="daily-progress">0.0 / 4.4 h</div>
-        <div class="warning-text" id="warning-msg">距离落榜又近了一天，今天欠的账拿什么还？！</div>
         <div class="total-progress">全局总进度: <span id="total-done">0</span> / <span id="total-target">225</span> 小时</div>
     </div>
 
-    <!-- 模块列表 -->
-    <div class="container" id="module-list">
-        <!-- 卡片由JS动态生成 -->
+    <div class="container" id="module-list"></div>
+
+    <!-- 模考算分器 -->
+    <div class="container">
+        <div class="calc-card">
+            <div class="calc-title">🏅 官方题型模拟算分器</div>
+            <p style="font-size:12px; color:#888; text-align:center; margin-bottom:10px;">输入各板块正确率(0-100)，自动折算百分制成绩</p>
+            
+            <div style="font-weight:bold; font-size:14px; margin-bottom:5px;">公基卷测算</div>
+            <div class="calc-grid">
+                <div class="calc-item">法律 (24%) <input type="number" id="gj-law" placeholder="%"></div>
+                <div class="calc-item">政治 (20%) <input type="number" id="gj-pol" placeholder="%"></div>
+                <div class="calc-item">计算(职测) (14.4%) <input type="number" id="gj-calc" placeholder="%"></div>
+                <div class="calc-item">公文 (8.8%) <input type="number" id="gj-doc" placeholder="%"></div>
+                <div class="calc-item">经济 (5.8%) <input type="number" id="gj-econ" placeholder="%"></div>
+                <div class="calc-item">科技 (9.4%) <input type="number" id="gj-sci" placeholder="%"></div>
+                <div class="calc-item">时政 (1.8%) <input type="number" id="gj-cur" placeholder="%"></div>
+            </div>
+            <button class="calc-btn" onclick="calcGongJi()">一键算公基</button>
+            <div class="calc-result" id="gj-result">-- / 100</div>
+
+            <div style="font-weight:bold; font-size:14px; margin-bottom:5px; margin-top:15px;">职测卷测算</div>
+            <div class="calc-grid">
+                <div class="calc-item">言语 (28%) <input type="number" id="zc-yy" placeholder="%"></div>
+                <div class="calc-item">常识时政 (17.5%) <input type="number" id="zc-cs" placeholder="%"></div>
+                <div class="calc-item">图形推理 (9%) <input type="number" id="zc-tx" placeholder="%"></div>
+                <div class="calc-item">定义判断 (4%) <input type="number" id="zc-dy" placeholder="%"></div>
+                <div class="calc-item">类比推理 (6%) <input type="number" id="zc-lb" placeholder="%"></div>
+                <div class="calc-item">逻辑判断 (4.5%) <input type="number" id="zc-lj" placeholder="%"></div>
+                <div class="calc-item">资料分析 (20%) <input type="number" id="zc-zl" placeholder="%"></div>
+                <div class="calc-item">数量关系 (11%) <input type="number" id="zc-sl" placeholder="%"></div>
+            </div>
+            <button class="calc-btn" onclick="calcZhiCe()">一键算职测</button>
+            <div class="calc-result" id="zc-result">-- / 100</div>
+        </div>
     </div>
 
-    <!-- 弹窗遮罩与内容 -->
-    <div class="modal-overlay" id="overlay" onclick="closeModal()"></div>
-    <div id="record-modal">
-        <div class="modal-title" id="modal-module-name">记录学习时长</div>
+    <!-- 弹窗组件 -->
+    <div class="modal-overlay" id="overlay" onclick="closeAllModals()"></div>
+    
+    <!-- 打卡弹窗 -->
+    <div class="modal" id="time-modal">
+        <div class="modal-title" id="time-modal-title">记录时长</div>
         <div class="quick-add-grid">
-            <button class="quick-btn" onclick="addTime(0.5)">+ 0.5h</button>
-            <button class="quick-btn" onclick="addTime(1.0)">+ 1.0h</button>
-            <button class="quick-btn" onclick="addTime(2.0)">+ 2.0h</button>
+            <button class="quick-btn" onclick="commitTime(0.5)">+ 0.5h</button>
+            <button class="quick-btn" onclick="commitTime(1.0)">+ 1.0h</button>
+            <button class="quick-btn" onclick="commitTime(2.0)">+ 2.0h</button>
         </div>
-        <button class="close-btn" onclick="closeModal()">取消</button>
+        <button class="close-btn" onclick="closeAllModals()">取消</button>
+    </div>
+
+    <!-- 修改目标弹窗 -->
+    <div class="modal" id="target-modal">
+        <div class="modal-title" id="target-modal-title">调整细分目标时间</div>
+        <div id="target-input-list"></div>
+        <button class="save-btn" onclick="saveTargets()">保存并重新核算全局时间</button>
+        <button class="close-btn" onclick="closeAllModals()">取消</button>
     </div>
 
     <script>
-        // 初始默认数据设置（如果本地没有存过）
-        const defaultModules = [
-            { id: 1, name: "法律 (零基础/刷题)", target: 60, current: 0 },
-            { id: 2, name: "政治 (马哲/中特)", target: 50, current: 0 },
-            { id: 3, name: "公文及常识", target: 15, current: 0 },
-            { id: 4, name: "资料分析与判断", target: 35, current: 0 },
-            { id: 5, name: "言语与数量", target: 15, current: 0 },
-            { id: 6, name: "全真套卷模考", target: 50, current: 0 }
+        // 数据结构定义
+        const newStructureBase = [
+            { id: 1, name: "法律", target: 60, current: 0, subs: [
+                {name:"学习-刑法", t:6, c:0}, {name:"学习-民法", t:6, c:0}, {name:"学习-行政法", t:6, c:0}, {name:"学习-宪法", t:6, c:0}, {name:"学习-其他", t:6, c:0},
+                {name:"刷题-刑法", t:6, c:0}, {name:"刷题-民法", t:6, c:0}, {name:"刷题-行政法", t:6, c:0}, {name:"刷题-宪法", t:6, c:0}, {name:"刷题-其他", t:6, c:0}
+            ]},
+            { id: 2, name: "政治", target: 50, current: 0, subs: [
+                {name:"学习-马哲", t:5, c:0}, {name:"学习-中特", t:5, c:0}, {name:"学习-时政", t:5, c:0}, {name:"学习-党史", t:5, c:0}, {name:"学习-毛概", t:5, c:0},
+                {name:"刷题-马哲", t:5, c:0}, {name:"刷题-中特", t:5, c:0}, {name:"刷题-时政", t:5, c:0}, {name:"刷题-党史", t:5, c:0}, {name:"刷题-毛概", t:5, c:0}
+            ]},
+            { id: 3, name: "公文及常识", target: 15, current: 0, subs: [{name:"公文及常识", t:15, c:0}] },
+            { id: 4, name: "资料分析", target: 35, current: 0, subs: [{name:"日度练习", t:15, c:0}, {name:"板块刷题", t:20, c:0}] },
+            { id: 5, name: "言语与数量", target: 15, current: 0, subs: [{name:"言语理解", t:4, c:0}, {name:"数量关系", t:4, c:0}, {name:"判断推理", t:4, c:0}, {name:"其他", t:3, c:0}] },
+            { id: 6, name: "全真套卷模考", target: 50, current: 0, subs: [{name:"公基卷", t:25, c:0}, {name:"职测卷", t:25, c:0}] }
         ];
 
-        let modules = JSON.parse(localStorage.getItem('examModules')) || defaultModules;
-        
-        // 每日重置逻辑处理
-        const todayStr = new Date().toLocaleDateString();
-        let storedDate = localStorage.getItem('lastRecordDate');
-        let todayLogged = parseFloat(localStorage.getItem('todayLogged')) || 0;
-
-        if (storedDate !== todayStr) {
-            todayLogged = 0;
-            localStorage.setItem('lastRecordDate', todayStr);
-            localStorage.setItem('todayLogged', 0);
+        // 自动迁移旧数据
+        let modules = JSON.parse(localStorage.getItem('examModulesV2'));
+        if (!modules) {
+            let oldData = JSON.parse(localStorage.getItem('examModules'));
+            modules = JSON.parse(JSON.stringify(newStructureBase));
+            if (oldData) {
+                oldData.forEach(oldM => {
+                    let match = modules.find(m => m.id === oldM.id || (m.id===4 && oldM.name.includes("资料分析")));
+                    if (match && oldM.current > 0) {
+                        match.subs.push({name: "🚨未分类历史记录", t: oldM.current, c: oldM.current});
+                    }
+                });
+            }
+            localStorage.setItem('examModulesV2', JSON.stringify(modules));
         }
 
-        let currentEditingModuleId = null;
+        let todayStr = new Date().toLocaleDateString();
+        let storedDate = localStorage.getItem('lastDateV2');
+        let todayLogged = parseFloat(localStorage.getItem('todayLoggedV2')) || 0;
+        if (storedDate !== todayStr) { todayLogged = 0; localStorage.setItem('lastDateV2', todayStr); localStorage.setItem('todayLoggedV2', 0); }
 
-        // 初始化渲染
+        let actMod = null; let actSub = null;
+
+        function updateDatesAndHP() {
+            const today = new Date();
+            const days = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"];
+            document.getElementById('date-display').innerText = `${today.getMonth()+1}月${today.getDate()}日 ${days[today.getDay()]}`;
+            
+            const start = new Date('2026-10-29T00:00:00');
+            const end = new Date('2026-12-20T00:00:00');
+            const total = Math.ceil((end - start)/(1000*60*60*24));
+            const left = Math.ceil((end - today)/(1000*60*60*24));
+            
+            let hp = Math.min(100, Math.max(0, (left / total) * 100));
+            document.getElementById('hp-fill').style.width = hp + '%';
+            document.getElementById('hp-text').innerText = `距考试 还有 ${Math.max(0, left)} 天 (生命值 ${hp.toFixed(1)}%)`;
+        }
+
         function render() {
             const list = document.getElementById('module-list');
             list.innerHTML = '';
-            
-            let totalDone = 0;
-            let totalTarget = 0;
+            let totalDone = 0, totalTarget = 0;
 
-            modules.forEach(mod => {
-                totalDone += mod.current;
-                totalTarget += mod.target;
+            modules.forEach((mod, mIndex) => {
+                // 动态计算父级数据
+                mod.target = mod.subs.reduce((acc, sub) => acc + (parseFloat(sub.t)||0), 0);
+                mod.current = mod.subs.reduce((acc, sub) => acc + (parseFloat(sub.c)||0), 0);
+                totalDone += mod.current; totalTarget += mod.target;
+
+                let pct = Math.min((mod.current/mod.target)*100, 100).toFixed(1);
                 
-                const percent = Math.min((mod.current / mod.target) * 100, 100).toFixed(1);
-                const diff = (mod.target - mod.current).toFixed(1);
+                let subHtml = `<div class="sub-list" id="sublist-${mIndex}">
+                    <button class="edit-sub-btn" onclick="openTargetModal(${mIndex}, event)">✏️ 调整细分目标时间 (严密对齐总盘)</button>`;
                 
-                const card = document.createElement('div');
-                card.className = 'card';
-                card.innerHTML = `
-                    <div class="card-left">
-                        <div class="card-title">
-                            ${mod.name} 
-                            <button class="edit-btn" onclick="editTarget(${mod.id})">✏️修改目标</button>
+                mod.subs.forEach((sub, sIndex) => {
+                    subHtml += `<div class="sub-item">
+                        <div style="flex:1"><div class="sub-name">${sub.name}</div></div>
+                        <div class="sub-stat">${sub.c.toFixed(1)} / ${sub.t}h</div>
+                        <button class="add-btn" onclick="openTimeModal(${mIndex}, ${sIndex}, event)">+</button>
+                    </div>`;
+                });
+                subHtml += `</div>`;
+
+                list.innerHTML += `
+                    <div class="card">
+                        <div class="card-header" onclick="toggleSub(${mIndex})">
+                            <div class="card-left">
+                                <div class="card-title">${mod.name} <span style="font-size:12px; color:#aaa;">(点击展开细分▼)</span></div>
+                                <div class="card-stats">进度: ${mod.current.toFixed(1)} / ${mod.target}h</div>
+                                <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${pct}%"></div></div>
+                            </div>
                         </div>
-                        <div class="card-stats">进度: ${mod.current.toFixed(1)} / ${mod.target}h (还差 ${diff > 0 ? diff : 0}h)</div>
-                        <div class="progress-bar-bg">
-                            <div class="progress-bar-fill" style="width: ${percent}%"></div>
-                        </div>
-                    </div>
-                    <div class="card-right">
-                        <button class="add-btn" onclick="openModal(${mod.id}, '${mod.name}')">+</button>
+                        ${subHtml}
                     </div>
                 `;
-                list.appendChild(card);
             });
 
-            // 更新顶部控制台
+            // 总目标托底225
+            totalTarget = Math.max(225, totalTarget);
             document.getElementById('total-done').innerText = totalDone.toFixed(1);
             document.getElementById('total-target').innerText = totalTarget.toFixed(1);
             document.getElementById('daily-progress').innerText = `${todayLogged.toFixed(1)} / 4.4 h`;
 
             const overview = document.getElementById('overview');
-            const msg = document.getElementById('warning-msg');
-            
+            const msg = document.getElementById('quote-msg');
             if (todayLogged >= 4.4) {
-                overview.className = 'status-success';
-                msg.innerText = "今日死线已过关。保持这个狠劲，早点休息。";
+                overview.className = 'status-success'; msg.innerText = "为者常成、行者常至";
             } else {
-                overview.className = 'status-danger';
-                msg.innerText = "距离落榜又近了一天，今天欠的账拿什么还？！";
+                overview.className = 'status-danger'; msg.innerText = "行百里者半九十";
             }
 
-            // 保存数据到本地
-            localStorage.setItem('examModules', JSON.stringify(modules));
-            localStorage.setItem('todayLogged', todayLogged);
+            localStorage.setItem('examModulesV2', JSON.stringify(modules));
+            localStorage.setItem('todayLoggedV2', todayLogged);
         }
 
-        // 修改目标时长
-        function editTarget(id) {
-            const mod = modules.find(m => m.id === id);
-            const newTarget = prompt(`请输入【${mod.name}】的最新总目标时长 (当前为 ${mod.target} 小时):`, mod.target);
-            
-            if (newTarget !== null && !isNaN(newTarget) && newTarget > 0) {
-                mod.target = parseFloat(newTarget);
-                render();
-            }
+        function toggleSub(idx) {
+            document.getElementById(`sublist-${idx}`).classList.toggle('active');
         }
 
-        // 弹窗操作
-        function openModal(id, name) {
-            currentEditingModuleId = id;
-            document.getElementById('modal-module-name').innerText = `记录【${name}】学习`;
-            document.getElementById('record-modal').classList.add('active');
+        function openTimeModal(mIndex, sIndex, e) {
+            e.stopPropagation(); actMod = mIndex; actSub = sIndex;
+            document.getElementById('time-modal-title').innerText = `记录【${modules[mIndex].subs[sIndex].name}】`;
+            document.getElementById('time-modal').classList.add('active');
             document.getElementById('overlay').classList.add('active');
         }
 
-        function closeModal() {
-            document.getElementById('record-modal').classList.remove('active');
+        function commitTime(hrs) {
+            modules[actMod].subs[actSub].c += hrs;
+            todayLogged += hrs;
+            render(); closeAllModals();
+        }
+
+        function openTargetModal(mIndex, e) {
+            e.stopPropagation(); actMod = mIndex;
+            const mod = modules[mIndex];
+            document.getElementById('target-modal-title').innerText = `调整【${mod.name}】结构`;
+            let html = '';
+            mod.subs.forEach((sub, i) => {
+                html += `<div class="target-input-row"><span>${sub.name}</span> <input type="number" id="t-in-${i}" value="${sub.t}"></div>`;
+            });
+            document.getElementById('target-input-list').innerHTML = html;
+            document.getElementById('target-modal').classList.add('active');
+            document.getElementById('overlay').classList.add('active');
+        }
+
+        function saveTargets() {
+            modules[actMod].subs.forEach((sub, i) => {
+                let v = parseFloat(document.getElementById(`t-in-${i}`).value);
+                if(!isNaN(v) && v >= 0) sub.t = v;
+            });
+            render(); closeAllModals();
+        }
+
+        function closeAllModals() {
+            document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
             document.getElementById('overlay').classList.remove('active');
-            currentEditingModuleId = null;
         }
 
-        function addTime(hours) {
-            if (currentEditingModuleId !== null) {
-                const mod = modules.find(m => m.id === currentEditingModuleId);
-                mod.current += hours;
-                todayLogged += hours;
-                render();
-                closeModal();
-            }
+        // 官方题型模拟算分逻辑
+        function calcGongJi() {
+            let law = parseFloat(document.getElementById('gj-law').value)||0; let pol = parseFloat(document.getElementById('gj-pol').value)||0;
+            let calc = parseFloat(document.getElementById('gj-calc').value)||0; let doc = parseFloat(document.getElementById('gj-doc').value)||0;
+            let econ = parseFloat(document.getElementById('gj-econ').value)||0; let sci = parseFloat(document.getElementById('gj-sci').value)||0;
+            let cur = parseFloat(document.getElementById('gj-cur').value)||0;
+            let s = (law*0.24 + pol*0.20 + calc*0.144 + doc*0.088 + econ*0.058 + sci*0.094 + cur*0.018) / 0.842 * 100;
+            document.getElementById('gj-result').innerText = s.toFixed(2) + " / 100";
         }
 
-        // 初始执行
+        function calcZhiCe() {
+            let yy = parseFloat(document.getElementById('zc-yy').value)||0; let cs = parseFloat(document.getElementById('zc-cs').value)||0;
+            let tx = parseFloat(document.getElementById('zc-tx').value)||0; let dy = parseFloat(document.getElementById('zc-dy').value)||0;
+            let lb = parseFloat(document.getElementById('zc-lb').value)||0; let lj = parseFloat(document.getElementById('zc-lj').value)||0;
+            let zl = parseFloat(document.getElementById('zc-zl').value)||0; let sl = parseFloat(document.getElementById('zc-sl').value)||0;
+            let s = (yy*0.28 + cs*0.175 + tx*0.09 + dy*0.04 + lb*0.06 + lj*0.045 + zl*0.20 + sl*0.11);
+            document.getElementById('zc-result').innerText = s.toFixed(2) + " / 100";
+        }
+
+        updateDatesAndHP();
         render();
     </script>
 </body>
