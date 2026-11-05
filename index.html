@@ -3,76 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>考研/考试 极简工作台 V3</title>
+    <title>考研/考试 极简工作台 V4</title>
+    <!-- 引入图表库 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --bg-color: #f4f5f7;
-            --card-bg: #ffffff;
-            --text-main: #333333;
-            --text-sub: #888888;
-            --primary: #4a90e2;
-            --success-bg: #e6f9ec;
-            --success-text: #87CEEB; 
-            --danger-bg: #2c3e50; 
-            --danger-text: #FFD700; 
+            /* 粉蓝高级配色 */
+            --bg-color: #fafafa;
+            --card-bg: rgba(255, 255, 255, 0.9);
+            --primary: #96D1E8;      /* 清浅雾霾蓝 */
+            --primary-dark: #6ebcd9;
+            --pink-accent: #E88A9A;  /* 粉柔 */
+            --success-text: #00FFFF; /* 亮青/天蓝 */
+            --danger-text: #FFD700;  /* 亮黄 */
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-main); padding-bottom: 80px; }
         
+        body { 
+            background: linear-gradient(135deg, rgba(232,138,154,0.15) 0%, rgba(150,209,232,0.15) 100%); 
+            color: #333; padding-bottom: 80px; min-height: 100vh;
+        }
+        
+        /* 顶部看板使用粉蓝双色渐变 */
         #overview {
             padding: 25px 20px; text-align: center;
             border-bottom-left-radius: 20px; border-bottom-right-radius: 20px;
-            transition: all 0.3s ease; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            background: linear-gradient(135deg, var(--pink-accent) 0%, var(--primary) 100%);
+            color: white; transition: background 0.3s;
         }
-        .status-danger { background-color: var(--danger-bg); color: #fff; }
-        .status-danger #quote-msg { color: var(--danger-text); font-weight: 900; }
-        .status-success { background-color: var(--success-bg); color: #333; }
-        .status-success #quote-msg { color: var(--success-text); font-weight: 900; }
         
-        #date-display { font-size: 14px; opacity: 0.8; margin-bottom: 10px; }
-        #quote-msg { font-size: 22px; margin: 10px 0; letter-spacing: 2px;}
-        #daily-progress { font-size: 32px; font-weight: bold; margin: 5px 0; }
+        .status-danger #quote-msg { color: var(--danger-text); }
+        .status-success #quote-msg { color: var(--success-text); }
+        
+        #date-display { font-size: 14px; opacity: 0.9; margin-bottom: 10px; font-weight: bold;}
+        #quote-msg { font-size: 20px; margin: 10px 0; letter-spacing: 1px; font-weight: 900; text-shadow: 1px 1px 3px rgba(0,0,0,0.4);}
+        #daily-progress { font-size: 32px; font-weight: bold; margin: 5px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.2);}
         .total-progress { font-size: 14px; margin-top: 10px; opacity: 0.9; }
 
-        .hp-container { margin: 15px auto; width: 100%; max-width: 350px; background: #222; border-radius: 10px; border: 2px solid #555; position: relative; overflow: hidden; box-shadow: inset 0 0 5px rgba(0,0,0,0.8); }
-        .hp-fill { height: 18px; background: linear-gradient(90deg, #ff416c, #ff4b2b); width: 100%; transition: width 0.5s ease-out; }
-        .hp-text { position: absolute; width: 100%; text-align: center; color: white; font-size: 11px; line-height: 18px; font-weight: bold; top: 0; left: 0; text-shadow: 1px 1px 2px black;}
+        .hp-container { margin: 15px auto; width: 100%; max-width: 350px; background: rgba(0,0,0,0.2); border-radius: 10px; position: relative; overflow: hidden; height: 20px; box-shadow: inset 0 0 5px rgba(0,0,0,0.3);}
+        .hp-fill { height: 100%; background: linear-gradient(90deg, #ff7e5f, #feb47b); width: 100%; transition: width 0.5s; }
+        .hp-text { position: absolute; width: 100%; text-align: center; color: white; font-size: 12px; line-height: 20px; font-weight: bold; top: 0; left: 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.6);}
 
         .container { padding: 15px; }
-        .card { background: var(--card-bg); border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); overflow: hidden; }
+        .card { background: var(--card-bg); border-radius: 12px; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(150,209,232,0.15); overflow: hidden; border: 1px solid rgba(255,255,255,0.6); backdrop-filter: blur(5px);}
         .card-header { padding: 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
         .card-left { flex: 1; }
-        .card-title { font-size: 16px; font-weight: bold; margin-bottom: 6px; display: flex; align-items: center; gap: 8px;}
-        .card-stats { font-size: 12px; color: var(--text-sub); margin-bottom: 8px; }
-        .progress-bar-bg { width: 100%; height: 6px; background: #e0e0e0; border-radius: 3px; overflow: hidden; }
+        .card-title { font-size: 16px; font-weight: bold; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; color: #444;}
+        .card-stats { font-size: 12px; color: #888; margin-bottom: 8px; }
+        
+        .progress-bar-bg { width: 100%; height: 6px; background: #eef1f5; border-radius: 3px; overflow: hidden; }
         .progress-bar-fill { height: 100%; background: var(--primary); transition: width 0.3s; }
         
-        .sub-list { background: #fafafa; padding: 10px 15px; border-top: 1px solid #eee; display: none; }
+        .sub-list { background: rgba(255,255,255,0.6); padding: 10px 15px; border-top: 1px solid #f0f0f0; display: none; }
         .sub-list.active { display: block; }
-        .sub-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px dashed #eee; }
+        .sub-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px dashed #ddd; }
         .sub-item:last-child { border-bottom: none; }
-        .sub-name { font-size: 14px; color: #444; }
+        .sub-name { font-size: 14px; color: #555; }
         .sub-stat { font-size: 12px; color: #888; margin-right: 10px; }
-        .add-btn { background: var(--primary); color: white; border: none; width: 30px; height: 30px; border-radius: 15px; font-size: 18px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(74, 144, 226, 0.4); }
-        .edit-sub-btn { width: 100%; padding: 8px; background: white; border: 1px solid var(--primary); color: var(--primary); border-radius: 6px; font-size: 13px; margin-bottom: 10px; cursor: pointer;}
+        .add-btn { background: var(--primary); color: white; border: none; width: 28px; height: 28px; border-radius: 14px; font-size: 18px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(150,209,232,0.5); }
+        .edit-sub-btn { width: 100%; padding: 8px; background: white; border: 1px solid var(--primary); color: var(--primary-dark); border-radius: 6px; font-size: 13px; margin-bottom: 10px; cursor: pointer;}
 
-        .calc-card { background: #fff8e1; border-radius: 12px; padding: 16px; margin-top: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        .calc-title { font-size: 16px; font-weight: bold; margin-bottom: 15px; text-align: center; color: #d35400; }
-        .calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-        .calc-item { display: flex; flex-direction: column; font-size: 12px; }
-        .calc-item input { padding: 6px; border: 1px solid #ccc; border-radius: 4px; margin-top: 4px; text-align: center;}
-        .calc-btn { width: 100%; padding: 10px; background: #d35400; color: white; border: none; border-radius: 6px; font-weight: bold; margin-bottom: 10px; }
-        .calc-result { text-align: center; font-size: 18px; font-weight: bold; color: #d35400; margin-bottom: 15px;}
-
-        .modal { position: fixed; bottom: 0; left: 0; width: 100%; background: white; border-top-left-radius: 20px; border-top-right-radius: 20px; padding: 20px; box-shadow: 0 -4px 15px rgba(0,0,0,0.1); transform: translateY(100%); transition: transform 0.3s ease; z-index: 100; max-height: 85vh; overflow-y: auto;}
-        .modal.active { transform: translateY(0); }
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; z-index: 99; }
-        .modal-overlay.active { display: block; }
-        .modal-title { font-size: 16px; font-weight: bold; margin-bottom: 15px; text-align: center; }
-        .quick-add-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-        .quick-btn { padding: 12px; background: #f0f4f8; border: none; border-radius: 8px; font-size: 16px; color: var(--primary); font-weight: bold; }
-        .close-btn { width: 100%; padding: 12px; background: #eee; border: none; border-radius: 8px; font-size: 16px; margin-top: 10px; }
+        /* 计算器与模考卡片 */
+        .calc-card { background: rgba(255,255,255,0.85); border-radius: 12px; padding: 16px; margin-top: 20px; box-shadow: 0 4px 12px rgba(232,138,154,0.15); border: 1px solid rgba(232,138,154,0.3);}
+        .calc-title { font-size: 16px; font-weight: bold; margin-bottom: 15px; text-align: center; color: var(--pink-accent); }
+        .calc-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 15px; }
+        .calc-item { display: flex; flex-direction: column; font-size: 11px; color: #555;}
+        .calc-item input { padding: 6px; border: 1px solid #ddd; border-radius: 4px; margin-top: 4px; text-align: center; font-size:12px; background: #fff;}
+        .calc-btn { width: 100%; padding: 10px; background: var(--pink-accent); color: white; border: none; border-radius: 6px; font-weight: bold; margin-bottom: 10px; box-shadow: 0 2px 6px rgba(232,138,154,0.4);}
+        .chart-btn { width: 100%; padding: 10px; background: var(--primary); color: white; border: none; border-radius: 6px; font-weight: bold; margin-bottom: 10px; box-shadow: 0 2px 6px rgba(150,209,232,0.4);}
         
+        .mock-input-row { display: flex; gap: 10px; margin-bottom: 10px; }
+        .mock-input-row input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 6px; text-align: center;}
+
+        /* 弹窗 */
+        .modal { position: fixed; bottom: 0; left: 0; width: 100%; background: white; border-top-left-radius: 20px; border-top-right-radius: 20px; padding: 20px; box-shadow: 0 -4px 20px rgba(0,0,0,0.15); transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.1, 0.8, 0.3, 1); z-index: 100; max-height: 85vh; overflow-y: auto;}
+        .modal.active { transform: translateY(0); }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; z-index: 99; backdrop-filter: blur(2px);}
+        .modal-overlay.active { display: block; }
+        
+        .chart-container { position: relative; height: 300px; width: 100%; margin-bottom: 15px;}
+        
+        .quick-add-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .quick-btn { padding: 12px; background: rgba(150,209,232,0.15); border: none; border-radius: 8px; font-size: 16px; color: var(--primary-dark); font-weight: bold; }
+        .close-btn { width: 100%; padding: 12px; background: #f0f0f0; border: none; border-radius: 8px; font-size: 16px; margin-top: 10px; color: #555;}
         .target-input-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 14px;}
         .target-input-row input { width: 60px; padding: 5px; text-align: center; border: 1px solid #ccc; border-radius: 4px; }
         .save-btn { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; margin-top: 10px; }
@@ -87,50 +101,62 @@
             <div class="hp-text" id="hp-text">计算中...</div>
         </div>
         <h1 id="quote-msg">行百里者半九十</h1>
-        <div id="daily-progress">0.0 / 4.4 h</div>
+        <div id="daily-progress">0.0 / 0.0 h</div>
         <div class="total-progress">全局总进度: <span id="total-done">0</span> / <span id="total-target">225</span> 小时</div>
     </div>
 
     <div class="container" id="module-list"></div>
 
     <div class="container">
+        <!-- 自动估分正确率打卡 -->
         <div class="calc-card">
-            <div class="calc-title">🏅 官方题型模拟算分器</div>
-            <p style="font-size:12px; color:#888; text-align:center; margin-bottom:10px;">输入各板块正确率(0-100)，自动折算百分制成绩</p>
+            <div class="calc-title">📝 正确率估分器 (自动存最新值)</div>
             
-            <div style="font-weight:bold; font-size:14px; margin-bottom:5px;">公基卷测算</div>
+            <div style="font-weight:bold; font-size:12px; margin-bottom:5px; color:#444;">公基卷测算</div>
             <div class="calc-grid">
                 <div class="calc-item">法律 (24%) <input type="number" id="gj-law" placeholder="%"></div>
                 <div class="calc-item">政治 (20%) <input type="number" id="gj-pol" placeholder="%"></div>
-                <div class="calc-item">计算(职测) (14.4%) <input type="number" id="gj-calc" placeholder="%"></div>
+                <div class="calc-item">职测(14.4%) <input type="number" id="gj-calc" placeholder="%"></div>
                 <div class="calc-item">公文 (8.8%) <input type="number" id="gj-doc" placeholder="%"></div>
                 <div class="calc-item">经济 (5.8%) <input type="number" id="gj-econ" placeholder="%"></div>
                 <div class="calc-item">科技 (9.4%) <input type="number" id="gj-sci" placeholder="%"></div>
                 <div class="calc-item">时政 (1.8%) <input type="number" id="gj-cur" placeholder="%"></div>
             </div>
-            <button class="calc-btn" onclick="calcGongJi()">一键算公基</button>
-            <div class="calc-result" id="gj-result">-- / 100</div>
 
-            <div style="font-weight:bold; font-size:14px; margin-bottom:5px; margin-top:15px;">职测卷测算</div>
+            <div style="font-weight:bold; font-size:12px; margin-bottom:5px; margin-top:10px; color:#444;">职测卷测算</div>
             <div class="calc-grid">
                 <div class="calc-item">言语 (28%) <input type="number" id="zc-yy" placeholder="%"></div>
-                <div class="calc-item">常识时政 (17.5%) <input type="number" id="zc-cs" placeholder="%"></div>
-                <div class="calc-item">图形推理 (9%) <input type="number" id="zc-tx" placeholder="%"></div>
-                <div class="calc-item">定义判断 (4%) <input type="number" id="zc-dy" placeholder="%"></div>
-                <div class="calc-item">类比推理 (6%) <input type="number" id="zc-lb" placeholder="%"></div>
-                <div class="calc-item">逻辑判断 (4.5%) <input type="number" id="zc-lj" placeholder="%"></div>
-                <div class="calc-item">资料分析 (20%) <input type="number" id="zc-zl" placeholder="%"></div>
-                <div class="calc-item">数量关系 (11%) <input type="number" id="zc-sl" placeholder="%"></div>
+                <div class="calc-item">常识 (17.5%) <input type="number" id="zc-cs" placeholder="%"></div>
+                <div class="calc-item">图形 (9%) <input type="number" id="zc-tx" placeholder="%"></div>
+                <div class="calc-item">定义 (4%) <input type="number" id="zc-dy" placeholder="%"></div>
+                <div class="calc-item">类比 (6%) <input type="number" id="zc-lb" placeholder="%"></div>
+                <div class="calc-item">逻辑 (4.5%) <input type="number" id="zc-lj" placeholder="%"></div>
+                <div class="calc-item">资料 (20%) <input type="number" id="zc-zl" placeholder="%"></div>
+                <div class="calc-item">数量 (11%) <input type="number" id="zc-sl" placeholder="%"></div>
             </div>
-            <button class="calc-btn" onclick="calcZhiCe()">一键算职测</button>
-            <div class="calc-result" id="zc-result">-- / 100</div>
+            
+            <button class="calc-btn" onclick="saveAndCalcRates()">测算分值并存入历史折线</button>
+            <button class="chart-btn" onclick="showChart('rate')">📈 查看正确率折算历史趋势</button>
+        </div>
+
+        <!-- 真实模考成绩打卡 -->
+        <div class="calc-card">
+            <div class="calc-title">🏆 真实套卷模考成绩记录</div>
+            <div class="mock-input-row">
+                <input type="number" id="mock-gj" placeholder="公基分数">
+                <input type="number" id="mock-zc" placeholder="职测分数">
+            </div>
+            <button class="calc-btn" onclick="saveMockScore()">记录本次成绩</button>
+            <button class="chart-btn" onclick="showChart('mock')">📈 查看真实模考分数曲线</button>
         </div>
     </div>
 
+    <!-- 各种弹窗遮罩 -->
     <div class="modal-overlay" id="overlay" onclick="closeAllModals()"></div>
     
+    <!-- 打卡时间弹窗 -->
     <div class="modal" id="time-modal">
-        <div class="modal-title" id="time-modal-title">记录时长</div>
+        <div class="modal-title" id="time-modal-title" style="font-weight:bold; text-align:center; margin-bottom:15px;">记录时长</div>
         <div class="quick-add-grid">
             <button class="quick-btn" onclick="commitTime(0.5)">+ 0.5h</button>
             <button class="quick-btn" onclick="commitTime(1.0)">+ 1.0h</button>
@@ -139,52 +165,72 @@
         <button class="close-btn" onclick="closeAllModals()">取消</button>
     </div>
 
+    <!-- 修改目标弹窗 -->
     <div class="modal" id="target-modal">
-        <div class="modal-title" id="target-modal-title">调整细分目标时间</div>
+        <div class="modal-title" id="target-modal-title" style="font-weight:bold; text-align:center; margin-bottom:15px;">调整细分目标时间</div>
         <div id="target-input-list"></div>
-        <button class="save-btn" onclick="saveTargets()">保存并重新核算全局时间</button>
+        <button class="save-btn" onclick="saveTargets()">保存并核算总盘</button>
         <button class="close-btn" onclick="closeAllModals()">取消</button>
     </div>
 
-    <script>
-        const newStructureBase = [
-            { id: 1, name: "法律", target: 60, current: 0, subs: [
-                {name:"学习-刑法", t:6, c:0}, {name:"学习-民法", t:6, c:0}, {name:"学习-行政法", t:6, c:0}, {name:"学习-宪法", t:6, c:0}, {name:"学习-其他", t:6, c:0},
-                {name:"刷题-刑法", t:6, c:0}, {name:"刷题-民法", t:6, c:0}, {name:"刷题-行政法", t:6, c:0}, {name:"刷题-宪法", t:6, c:0}, {name:"刷题-其他", t:6, c:0}
-            ]},
-            { id: 2, name: "政治", target: 50, current: 0, subs: [
-                {name:"学习-马哲", t:5, c:0}, {name:"学习-中特", t:5, c:0}, {name:"学习-时政", t:5, c:0}, {name:"学习-党史", t:5, c:0}, {name:"学习-毛概", t:5, c:0},
-                {name:"刷题-马哲", t:5, c:0}, {name:"刷题-中特", t:5, c:0}, {name:"刷题-时政", t:5, c:0}, {name:"刷题-党史", t:5, c:0}, {name:"刷题-毛概", t:5, c:0}
-            ]},
-            { id: 3, name: "公文及常识", target: 15, current: 0, subs: [{name:"公文及常识", t:15, c:0}] },
-            { id: 4, name: "资料分析", target: 35, current: 0, subs: [{name:"日度练习", t:15, c:0}, {name:"板块刷题", t:20, c:0}] },
-            { id: 5, name: "言语与数量", target: 15, current: 0, subs: [{name:"言语理解", t:4, c:0}, {name:"数量关系", t:4, c:0}, {name:"判断推理", t:4, c:0}, {name:"其他", t:3, c:0}] },
-            { id: 6, name: "全真套卷模考", target: 50, current: 0, subs: [{name:"公基卷", t:25, c:0}, {name:"职测卷", t:25, c:0}] }
-        ];
+    <!-- 图表展示弹窗 -->
+    <div class="modal" id="chart-modal">
+        <div class="chart-container">
+            <canvas id="myCanvas"></canvas>
+        </div>
+        <button class="close-btn" onclick="closeAllModals()">关闭图表</button>
+    </div>
 
-        // V3 级数据迁移保护，绝对防止盘子倒挂
-        let modules = JSON.parse(localStorage.getItem('examModulesV3'));
+    <script>
+        // 日程表每日动态时长提取数据
+        const scheduleData = {'10-29': 4.5, '10-30': 3.0, '10-31': 8.5, '11-01': 8.5, '11-02': 3.5, '11-03': 2.5, '11-04': 0.0, '11-05': 2.5, '11-06': 1.0, '11-07': 6.5, '11-08': 6.5, '11-09': 1.5, '11-10': 4.5, '11-11': 2.5, '11-12': 4.5, '11-13': 3.0, '11-14': 8.5, '11-15': 8.5, '11-16': 3.5, '11-17': 4.5, '11-18': 2.5, '11-19': 4.5, '11-20': 3.0, '11-21': 8.5, '11-22': 8.5, '11-23': 3.5, '11-24': 4.5, '11-25': 2.5, '11-26': 4.5, '11-27': 3.0, '11-28': 8.5, '11-29': 8.5, '11-30': 3.5, '12-01': 4.5, '12-02': 2.5, '12-03': 2.5, '12-04': 1.0, '12-05': 6.5, '12-06': 6.5, '12-07': 1.5, '12-08': 2.5, '12-09': 0.0, '12-10': 4.5, '12-11': 3.0, '12-12': 8.5, '12-13': 8.5, '12-14': 3.5, '12-15': 4.5, '12-16': 2.5, '12-17': 4.5, '12-18': 3.0, '12-19': 8.5, '12-20': 8.5};
+        
+        // 动态获取今天的死线目标
+        const todayObj = new Date();
+        const mm = (todayObj.getMonth()+1).toString().padStart(2, '0');
+        const dd = todayObj.getDate().toString().padStart(2, '0');
+        const dateKey = `${mm}-${dd}`;
+        const dailyTarget = scheduleData[dateKey] !== undefined ? scheduleData[dateKey] : 0.0;
+
+        // V4 级数据迁移保护
+        let modules = JSON.parse(localStorage.getItem('examModulesV4'));
         if (!modules) {
-            let oldData = JSON.parse(localStorage.getItem('examModules')); // 调取你最初的29.5小时数据
-            modules = JSON.parse(JSON.stringify(newStructureBase));
+            let oldData = JSON.parse(localStorage.getItem('examModulesV3')) || JSON.parse(localStorage.getItem('examModulesV2')) || JSON.parse(localStorage.getItem('examModules')); 
+            modules = [
+                { id: 1, name: "法律", target: 60, current: 0, subs: [{name:"学习-刑法", t:6, c:0}, {name:"刷题-刑法", t:6, c:0}, {name:"学习-民法", t:6, c:0}, {name:"刷题-民法", t:6, c:0}, {name:"学习-行政法", t:6, c:0}, {name:"刷题-行政法", t:6, c:0}, {name:"学习-宪法", t:6, c:0}, {name:"刷题-宪法", t:6, c:0}, {name:"学习-其他", t:6, c:0}, {name:"刷题-其他", t:6, c:0}]},
+                { id: 2, name: "政治", target: 50, current: 0, subs: [{name:"学习-马哲", t:5, c:0}, {name:"刷题-马哲", t:5, c:0}, {name:"学习-中特", t:5, c:0}, {name:"刷题-中特", t:5, c:0}, {name:"学习-时政", t:5, c:0}, {name:"刷题-时政", t:5, c:0}, {name:"学习-党史", t:5, c:0}, {name:"刷题-党史", t:5, c:0}, {name:"学习-毛概", t:5, c:0}, {name:"刷题-毛概", t:5, c:0}]},
+                { id: 3, name: "公文及常识", target: 15, current: 0, subs: [{name:"公文及常识", t:15, c:0}] },
+                { id: 4, name: "资料分析", target: 35, current: 0, subs: [{name:"日度练习", t:15, c:0}, {name:"板块刷题", t:20, c:0}] },
+                { id: 5, name: "言语与数量", target: 15, current: 0, subs: [{name:"言语理解", t:4, c:0}, {name:"数量关系", t:4, c:0}, {name:"判断推理", t:4, c:0}, {name:"其他", t:3, c:0}] },
+                { id: 6, name: "全真套卷模考", target: 50, current: 0, subs: [{name:"公基卷", t:25, c:0}, {name:"职测卷", t:25, c:0}] }
+            ];
             if (oldData) {
                 oldData.forEach(oldM => {
                     let match = modules.find(m => m.id === oldM.id || (m.id===4 && oldM.name.includes("资料分析")));
-                    if (match && oldM.current > 0) {
-                        // 【核算逻辑修复】：历史记录的目标增量(t)强制为0，只累加已完成时间(c)
-                        match.subs.push({name: "🚨未分类历史记录(已扣除)", t: 0, c: oldM.current});
-                    }
+                    if (match && oldM.current > 0) match.subs.push({name: "🚨未分类历史记录(已扣除)", t: 0, c: oldM.current});
                 });
             }
-            localStorage.setItem('examModulesV3', JSON.stringify(modules));
+            localStorage.setItem('examModulesV4', JSON.stringify(modules));
         }
 
         let todayStr = new Date().toLocaleDateString();
-        let storedDate = localStorage.getItem('lastDateV3');
-        let todayLogged = parseFloat(localStorage.getItem('todayLoggedV3')) || 0;
-        if (storedDate !== todayStr) { todayLogged = 0; localStorage.setItem('lastDateV3', todayStr); localStorage.setItem('todayLoggedV3', 0); }
+        let storedDate = localStorage.getItem('lastDateV4');
+        let todayLogged = parseFloat(localStorage.getItem('todayLoggedV4')) || 0;
+        if (storedDate !== todayStr) { todayLogged = 0; localStorage.setItem('lastDateV4', todayStr); localStorage.setItem('todayLoggedV4', 0); }
 
         let actMod = null; let actSub = null;
+
+        // 图表历史数据初始化
+        let rateHistory = JSON.parse(localStorage.getItem('rateHistoryV4')) || { gj: [], zc: [], labels: [] };
+        let mockHistory = JSON.parse(localStorage.getItem('mockHistoryV4')) || { gj: [], zc: [], labels: [] };
+        let myChart = null;
+
+        // 恢复上次填写的正确率记录
+        const rateInputs = ['gj-law','gj-pol','gj-calc','gj-doc','gj-econ','gj-sci','gj-cur','zc-yy','zc-cs','zc-tx','zc-dy','zc-lb','zc-lj','zc-zl','zc-sl'];
+        rateInputs.forEach(id => {
+            let saved = localStorage.getItem('save_'+id);
+            if(saved) document.getElementById(id).value = saved;
+        });
 
         function updateDatesAndHP() {
             const today = new Date();
@@ -217,7 +263,7 @@
                     <button class="edit-sub-btn" onclick="openTargetModal(${mIndex}, event)">✏️ 调整细分目标时间 (严密对齐总盘)</button>`;
                 
                 mod.subs.forEach((sub, sIndex) => {
-                    let displayTarget = sub.name.includes("历史记录") ? "0(不占新指标)" : sub.t + "h";
+                    let displayTarget = sub.name.includes("历史记录") ? "0(不占指标)" : sub.t + "h";
                     subHtml += `<div class="sub-item">
                         <div style="flex:1"><div class="sub-name">${sub.name}</div></div>
                         <div class="sub-stat">${sub.c.toFixed(1)} / ${displayTarget}</div>
@@ -243,18 +289,21 @@
             totalTarget = Math.max(225, totalTarget);
             document.getElementById('total-done').innerText = totalDone.toFixed(1);
             document.getElementById('total-target').innerText = totalTarget.toFixed(1);
-            document.getElementById('daily-progress').innerText = `${todayLogged.toFixed(1)} / 4.4 h`;
+            document.getElementById('daily-progress').innerText = `${todayLogged.toFixed(1)} / ${dailyTarget} h`;
 
             const overview = document.getElementById('overview');
             const msg = document.getElementById('quote-msg');
-            if (todayLogged >= 4.4) {
-                overview.className = 'status-success'; msg.innerText = "为者常成、行者常至";
+            // 根据提取排班表的可用时间判断
+            if (todayLogged >= dailyTarget && dailyTarget > 0) {
+                overview.className = 'status-success'; msg.innerText = "为者常成，行者常至";
+            } else if (dailyTarget === 0) {
+                overview.className = 'status-success'; msg.innerText = "今日休整，养精蓄锐";
             } else {
                 overview.className = 'status-danger'; msg.innerText = "行百里者半九十";
             }
 
-            localStorage.setItem('examModulesV3', JSON.stringify(modules));
-            localStorage.setItem('todayLoggedV3', todayLogged);
+            localStorage.setItem('examModulesV4', JSON.stringify(modules));
+            localStorage.setItem('todayLoggedV4', todayLogged);
         }
 
         function toggleSub(idx) { document.getElementById(`sublist-${idx}`).classList.toggle('active'); }
@@ -303,22 +352,64 @@
             document.getElementById('overlay').classList.remove('active');
         }
 
-        function calcGongJi() {
-            let law = parseFloat(document.getElementById('gj-law').value)||0; let pol = parseFloat(document.getElementById('gj-pol').value)||0;
-            let calc = parseFloat(document.getElementById('gj-calc').value)||0; let doc = parseFloat(document.getElementById('gj-doc').value)||0;
-            let econ = parseFloat(document.getElementById('gj-econ').value)||0; let sci = parseFloat(document.getElementById('gj-sci').value)||0;
-            let cur = parseFloat(document.getElementById('gj-cur').value)||0;
-            let s = (law*0.24 + pol*0.20 + calc*0.144 + doc*0.088 + econ*0.058 + sci*0.094 + cur*0.018) / 0.842 * 100;
-            document.getElementById('gj-result').innerText = s.toFixed(2) + " / 100";
+        // 保存测算与正确率
+        function saveAndCalcRates() {
+            rateInputs.forEach(id => {
+                localStorage.setItem('save_'+id, document.getElementById(id).value || '');
+            });
+            
+            const g = id => parseFloat(document.getElementById(id).value)||0;
+            let gjScore = (g('gj-law')*0.24 + g('gj-pol')*0.20 + g('gj-calc')*0.144 + g('gj-doc')*0.088 + g('gj-econ')*0.058 + g('gj-sci')*0.094 + g('gj-cur')*0.018) / 0.842 * 100;
+            let zcScore = (g('zc-yy')*0.28 + g('zc-cs')*0.175 + g('zc-tx')*0.09 + g('zc-dy')*0.04 + g('zc-lb')*0.06 + g('zc-lj')*0.045 + g('zc-zl')*0.20 + g('zc-sl')*0.11);
+            
+            rateHistory.labels.push(dateKey);
+            rateHistory.gj.push(gjScore.toFixed(1));
+            rateHistory.zc.push(zcScore.toFixed(1));
+            localStorage.setItem('rateHistoryV4', JSON.stringify(rateHistory));
+            
+            alert(`已测算并存入历史！\n预测公基：${gjScore.toFixed(2)}分\n预测职测：${zcScore.toFixed(2)}分`);
         }
 
-        function calcZhiCe() {
-            let yy = parseFloat(document.getElementById('zc-yy').value)||0; let cs = parseFloat(document.getElementById('zc-cs').value)||0;
-            let tx = parseFloat(document.getElementById('zc-tx').value)||0; let dy = parseFloat(document.getElementById('zc-dy').value)||0;
-            let lb = parseFloat(document.getElementById('zc-lb').value)||0; let lj = parseFloat(document.getElementById('zc-lj').value)||0;
-            let zl = parseFloat(document.getElementById('zc-zl').value)||0; let sl = parseFloat(document.getElementById('zc-sl').value)||0;
-            let s = (yy*0.28 + cs*0.175 + tx*0.09 + dy*0.04 + lb*0.06 + lj*0.045 + zl*0.20 + sl*0.11);
-            document.getElementById('zc-result').innerText = s.toFixed(2) + " / 100";
+        // 保存真实模考
+        function saveMockScore() {
+            let gj = parseFloat(document.getElementById('mock-gj').value);
+            let zc = parseFloat(document.getElementById('mock-zc').value);
+            if(isNaN(gj) || isNaN(zc)) { alert('请填写完整的分数'); return; }
+            
+            mockHistory.labels.push(dateKey);
+            mockHistory.gj.push(gj);
+            mockHistory.zc.push(zc);
+            localStorage.setItem('mockHistoryV4', JSON.stringify(mockHistory));
+            alert('真实成绩已收录入库！');
+            document.getElementById('mock-gj').value = '';
+            document.getElementById('mock-zc').value = '';
+        }
+
+        // 渲染图表
+        function showChart(type) {
+            document.getElementById('chart-modal').classList.add('active');
+            document.getElementById('overlay').classList.add('active');
+            const ctx = document.getElementById('myCanvas').getContext('2d');
+            if(myChart) myChart.destroy();
+            
+            let dataObj = type === 'rate' ? rateHistory : mockHistory;
+            let titleText = type === 'rate' ? '正确率预测分历史走势' : '真实套卷模考分数走势';
+
+            myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dataObj.labels,
+                    datasets: [
+                        { label: '公基卷', data: dataObj.gj, borderColor: '#96D1E8', backgroundColor: 'rgba(150,209,232,0.2)', tension: 0.3, fill: true, borderWidth: 3 },
+                        { label: '职测卷', data: dataObj.zc, borderColor: '#E88A9A', backgroundColor: 'rgba(232,138,154,0.2)', tension: 0.3, fill: true, borderWidth: 3 }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { title: { display: true, text: titleText, font: {size: 16} } },
+                    scales: { y: { min: 0, max: 100 } }
+                }
+            });
         }
 
         updateDatesAndHP();
