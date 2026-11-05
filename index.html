@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>考研/考试 极简工作台 V2</title>
+    <title>考研/考试 极简工作台 V3</title>
     <style>
         :root {
             --bg-color: #f4f5f7;
@@ -12,14 +12,13 @@
             --text-sub: #888888;
             --primary: #4a90e2;
             --success-bg: #e6f9ec;
-            --success-text: #87CEEB; /* 天蓝色 */
-            --danger-bg: #2c3e50; /* 深色背景衬托亮黄 */
-            --danger-text: #FFD700; /* 亮黄色 */
+            --success-text: #87CEEB; 
+            --danger-bg: #2c3e50; 
+            --danger-text: #FFD700; 
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; }
         body { background-color: var(--bg-color); color: var(--text-main); padding-bottom: 80px; }
         
-        /* 顶部全局控制台 */
         #overview {
             padding: 25px 20px; text-align: center;
             border-bottom-left-radius: 20px; border-bottom-right-radius: 20px;
@@ -35,12 +34,10 @@
         #daily-progress { font-size: 32px; font-weight: bold; margin: 5px 0; }
         .total-progress { font-size: 14px; margin-top: 10px; opacity: 0.9; }
 
-        /* 血条设计 */
         .hp-container { margin: 15px auto; width: 100%; max-width: 350px; background: #222; border-radius: 10px; border: 2px solid #555; position: relative; overflow: hidden; box-shadow: inset 0 0 5px rgba(0,0,0,0.8); }
         .hp-fill { height: 18px; background: linear-gradient(90deg, #ff416c, #ff4b2b); width: 100%; transition: width 0.5s ease-out; }
         .hp-text { position: absolute; width: 100%; text-align: center; color: white; font-size: 11px; line-height: 18px; font-weight: bold; top: 0; left: 0; text-shadow: 1px 1px 2px black;}
 
-        /* 模块卡片列表 */
         .container { padding: 15px; }
         .card { background: var(--card-bg); border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); overflow: hidden; }
         .card-header { padding: 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
@@ -49,9 +46,7 @@
         .card-stats { font-size: 12px; color: var(--text-sub); margin-bottom: 8px; }
         .progress-bar-bg { width: 100%; height: 6px; background: #e0e0e0; border-radius: 3px; overflow: hidden; }
         .progress-bar-fill { height: 100%; background: var(--primary); transition: width 0.3s; }
-        .card-right { margin-left: 15px; font-size: 12px; color: #888; }
         
-        /* 细分模块展开区 */
         .sub-list { background: #fafafa; padding: 10px 15px; border-top: 1px solid #eee; display: none; }
         .sub-list.active { display: block; }
         .sub-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px dashed #eee; }
@@ -61,7 +56,6 @@
         .add-btn { background: var(--primary); color: white; border: none; width: 30px; height: 30px; border-radius: 15px; font-size: 18px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(74, 144, 226, 0.4); }
         .edit-sub-btn { width: 100%; padding: 8px; background: white; border: 1px solid var(--primary); color: var(--primary); border-radius: 6px; font-size: 13px; margin-bottom: 10px; cursor: pointer;}
 
-        /* 算分器卡片 */
         .calc-card { background: #fff8e1; border-radius: 12px; padding: 16px; margin-top: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         .calc-title { font-size: 16px; font-weight: bold; margin-bottom: 15px; text-align: center; color: #d35400; }
         .calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
@@ -70,7 +64,6 @@
         .calc-btn { width: 100%; padding: 10px; background: #d35400; color: white; border: none; border-radius: 6px; font-weight: bold; margin-bottom: 10px; }
         .calc-result { text-align: center; font-size: 18px; font-weight: bold; color: #d35400; margin-bottom: 15px;}
 
-        /* 底部记录弹窗 */
         .modal { position: fixed; bottom: 0; left: 0; width: 100%; background: white; border-top-left-radius: 20px; border-top-right-radius: 20px; padding: 20px; box-shadow: 0 -4px 15px rgba(0,0,0,0.1); transform: translateY(100%); transition: transform 0.3s ease; z-index: 100; max-height: 85vh; overflow-y: auto;}
         .modal.active { transform: translateY(0); }
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; z-index: 99; }
@@ -100,7 +93,6 @@
 
     <div class="container" id="module-list"></div>
 
-    <!-- 模考算分器 -->
     <div class="container">
         <div class="calc-card">
             <div class="calc-title">🏅 官方题型模拟算分器</div>
@@ -135,10 +127,8 @@
         </div>
     </div>
 
-    <!-- 弹窗组件 -->
     <div class="modal-overlay" id="overlay" onclick="closeAllModals()"></div>
     
-    <!-- 打卡弹窗 -->
     <div class="modal" id="time-modal">
         <div class="modal-title" id="time-modal-title">记录时长</div>
         <div class="quick-add-grid">
@@ -149,7 +139,6 @@
         <button class="close-btn" onclick="closeAllModals()">取消</button>
     </div>
 
-    <!-- 修改目标弹窗 -->
     <div class="modal" id="target-modal">
         <div class="modal-title" id="target-modal-title">调整细分目标时间</div>
         <div id="target-input-list"></div>
@@ -158,7 +147,6 @@
     </div>
 
     <script>
-        // 数据结构定义
         const newStructureBase = [
             { id: 1, name: "法律", target: 60, current: 0, subs: [
                 {name:"学习-刑法", t:6, c:0}, {name:"学习-民法", t:6, c:0}, {name:"学习-行政法", t:6, c:0}, {name:"学习-宪法", t:6, c:0}, {name:"学习-其他", t:6, c:0},
@@ -174,26 +162,27 @@
             { id: 6, name: "全真套卷模考", target: 50, current: 0, subs: [{name:"公基卷", t:25, c:0}, {name:"职测卷", t:25, c:0}] }
         ];
 
-        // 自动迁移旧数据
-        let modules = JSON.parse(localStorage.getItem('examModulesV2'));
+        // V3 级数据迁移保护，绝对防止盘子倒挂
+        let modules = JSON.parse(localStorage.getItem('examModulesV3'));
         if (!modules) {
-            let oldData = JSON.parse(localStorage.getItem('examModules'));
+            let oldData = JSON.parse(localStorage.getItem('examModules')); // 调取你最初的29.5小时数据
             modules = JSON.parse(JSON.stringify(newStructureBase));
             if (oldData) {
                 oldData.forEach(oldM => {
                     let match = modules.find(m => m.id === oldM.id || (m.id===4 && oldM.name.includes("资料分析")));
                     if (match && oldM.current > 0) {
-                        match.subs.push({name: "🚨未分类历史记录", t: oldM.current, c: oldM.current});
+                        // 【核算逻辑修复】：历史记录的目标增量(t)强制为0，只累加已完成时间(c)
+                        match.subs.push({name: "🚨未分类历史记录(已扣除)", t: 0, c: oldM.current});
                     }
                 });
             }
-            localStorage.setItem('examModulesV2', JSON.stringify(modules));
+            localStorage.setItem('examModulesV3', JSON.stringify(modules));
         }
 
         let todayStr = new Date().toLocaleDateString();
-        let storedDate = localStorage.getItem('lastDateV2');
-        let todayLogged = parseFloat(localStorage.getItem('todayLoggedV2')) || 0;
-        if (storedDate !== todayStr) { todayLogged = 0; localStorage.setItem('lastDateV2', todayStr); localStorage.setItem('todayLoggedV2', 0); }
+        let storedDate = localStorage.getItem('lastDateV3');
+        let todayLogged = parseFloat(localStorage.getItem('todayLoggedV3')) || 0;
+        if (storedDate !== todayStr) { todayLogged = 0; localStorage.setItem('lastDateV3', todayStr); localStorage.setItem('todayLoggedV3', 0); }
 
         let actMod = null; let actSub = null;
 
@@ -218,7 +207,6 @@
             let totalDone = 0, totalTarget = 0;
 
             modules.forEach((mod, mIndex) => {
-                // 动态计算父级数据
                 mod.target = mod.subs.reduce((acc, sub) => acc + (parseFloat(sub.t)||0), 0);
                 mod.current = mod.subs.reduce((acc, sub) => acc + (parseFloat(sub.c)||0), 0);
                 totalDone += mod.current; totalTarget += mod.target;
@@ -229,9 +217,10 @@
                     <button class="edit-sub-btn" onclick="openTargetModal(${mIndex}, event)">✏️ 调整细分目标时间 (严密对齐总盘)</button>`;
                 
                 mod.subs.forEach((sub, sIndex) => {
+                    let displayTarget = sub.name.includes("历史记录") ? "0(不占新指标)" : sub.t + "h";
                     subHtml += `<div class="sub-item">
                         <div style="flex:1"><div class="sub-name">${sub.name}</div></div>
-                        <div class="sub-stat">${sub.c.toFixed(1)} / ${sub.t}h</div>
+                        <div class="sub-stat">${sub.c.toFixed(1)} / ${displayTarget}</div>
                         <button class="add-btn" onclick="openTimeModal(${mIndex}, ${sIndex}, event)">+</button>
                     </div>`;
                 });
@@ -251,7 +240,6 @@
                 `;
             });
 
-            // 总目标托底225
             totalTarget = Math.max(225, totalTarget);
             document.getElementById('total-done').innerText = totalDone.toFixed(1);
             document.getElementById('total-target').innerText = totalTarget.toFixed(1);
@@ -265,13 +253,11 @@
                 overview.className = 'status-danger'; msg.innerText = "行百里者半九十";
             }
 
-            localStorage.setItem('examModulesV2', JSON.stringify(modules));
-            localStorage.setItem('todayLoggedV2', todayLogged);
+            localStorage.setItem('examModulesV3', JSON.stringify(modules));
+            localStorage.setItem('todayLoggedV3', todayLogged);
         }
 
-        function toggleSub(idx) {
-            document.getElementById(`sublist-${idx}`).classList.toggle('active');
-        }
+        function toggleSub(idx) { document.getElementById(`sublist-${idx}`).classList.toggle('active'); }
 
         function openTimeModal(mIndex, sIndex, e) {
             e.stopPropagation(); actMod = mIndex; actSub = sIndex;
@@ -292,7 +278,9 @@
             document.getElementById('target-modal-title').innerText = `调整【${mod.name}】结构`;
             let html = '';
             mod.subs.forEach((sub, i) => {
-                html += `<div class="target-input-row"><span>${sub.name}</span> <input type="number" id="t-in-${i}" value="${sub.t}"></div>`;
+                if(!sub.name.includes("历史记录")) {
+                    html += `<div class="target-input-row"><span>${sub.name}</span> <input type="number" id="t-in-${i}" value="${sub.t}"></div>`;
+                }
             });
             document.getElementById('target-input-list').innerHTML = html;
             document.getElementById('target-modal').classList.add('active');
@@ -301,8 +289,11 @@
 
         function saveTargets() {
             modules[actMod].subs.forEach((sub, i) => {
-                let v = parseFloat(document.getElementById(`t-in-${i}`).value);
-                if(!isNaN(v) && v >= 0) sub.t = v;
+                let el = document.getElementById(`t-in-${i}`);
+                if(el) {
+                    let v = parseFloat(el.value);
+                    if(!isNaN(v) && v >= 0) sub.t = v;
+                }
             });
             render(); closeAllModals();
         }
@@ -312,7 +303,6 @@
             document.getElementById('overlay').classList.remove('active');
         }
 
-        // 官方题型模拟算分逻辑
         function calcGongJi() {
             let law = parseFloat(document.getElementById('gj-law').value)||0; let pol = parseFloat(document.getElementById('gj-pol').value)||0;
             let calc = parseFloat(document.getElementById('gj-calc').value)||0; let doc = parseFloat(document.getElementById('gj-doc').value)||0;
