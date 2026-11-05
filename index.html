@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>考研/考试 极简工作台 V4</title>
+    <title>考研/考试 极简工作台 V4.1</title>
     <!-- 引入图表库 -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -11,11 +11,11 @@
             /* 粉蓝高级配色 */
             --bg-color: #fafafa;
             --card-bg: rgba(255, 255, 255, 0.9);
-            --primary: #96D1E8;      /* 清浅雾霾蓝 */
+            --primary: #96D1E8;      /* 清浅雾霾蓝 (未完成背景) */
             --primary-dark: #6ebcd9;
-            --pink-accent: #E88A9A;  /* 粉柔 */
-            --success-text: #00FFFF; /* 亮青/天蓝 */
-            --danger-text: #FFD700;  /* 亮黄 */
+            --pink-accent: #E88A9A;  /* 粉柔 (已完成背景) */
+            --success-text: #ffffff; /* 达标文字颜色 */
+            --danger-text: #FFEB3B;  /* 警告文字颜色(亮黄) */
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; }
         
@@ -24,21 +24,20 @@
             color: #333; padding-bottom: 80px; min-height: 100vh;
         }
         
-        /* 顶部看板使用粉蓝双色渐变 */
+        /* 顶部看板纯色切换 */
         #overview {
             padding: 25px 20px; text-align: center;
             border-bottom-left-radius: 20px; border-bottom-right-radius: 20px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            background: linear-gradient(135deg, var(--pink-accent) 0%, var(--primary) 100%);
-            color: white; transition: background 0.3s;
+            color: white; transition: background-color 0.4s ease;
         }
         
-        .status-danger #quote-msg { color: var(--danger-text); }
-        .status-success #quote-msg { color: var(--success-text); }
+        .bg-incomplete { background-color: var(--primary); }
+        .bg-complete { background-color: var(--pink-accent); }
         
         #date-display { font-size: 14px; opacity: 0.9; margin-bottom: 10px; font-weight: bold;}
-        #quote-msg { font-size: 20px; margin: 10px 0; letter-spacing: 1px; font-weight: 900; text-shadow: 1px 1px 3px rgba(0,0,0,0.4);}
-        #daily-progress { font-size: 32px; font-weight: bold; margin: 5px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.2);}
+        #quote-msg { font-size: 20px; margin: 10px 0; letter-spacing: 1px; font-weight: 900; text-shadow: 1px 1px 4px rgba(0,0,0,0.3);}
+        #daily-progress { font-size: 32px; font-weight: bold; margin: 5px 0; text-shadow: 1px 1px 3px rgba(0,0,0,0.2);}
         .total-progress { font-size: 14px; margin-top: 10px; opacity: 0.9; }
 
         .hp-container { margin: 15px auto; width: 100%; max-width: 350px; background: rgba(0,0,0,0.2); border-radius: 10px; position: relative; overflow: hidden; height: 20px; box-shadow: inset 0 0 5px rgba(0,0,0,0.3);}
@@ -53,7 +52,7 @@
         .card-stats { font-size: 12px; color: #888; margin-bottom: 8px; }
         
         .progress-bar-bg { width: 100%; height: 6px; background: #eef1f5; border-radius: 3px; overflow: hidden; }
-        .progress-bar-fill { height: 100%; background: var(--primary); transition: width 0.3s; }
+        .progress-bar-fill { height: 100%; background: var(--primary-dark); transition: width 0.3s; }
         
         .sub-list { background: rgba(255,255,255,0.6); padding: 10px 15px; border-top: 1px solid #f0f0f0; display: none; }
         .sub-list.active { display: block; }
@@ -61,7 +60,7 @@
         .sub-item:last-child { border-bottom: none; }
         .sub-name { font-size: 14px; color: #555; }
         .sub-stat { font-size: 12px; color: #888; margin-right: 10px; }
-        .add-btn { background: var(--primary); color: white; border: none; width: 28px; height: 28px; border-radius: 14px; font-size: 18px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(150,209,232,0.5); }
+        .add-btn { background: var(--primary-dark); color: white; border: none; width: 28px; height: 28px; border-radius: 14px; font-size: 18px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(150,209,232,0.5); }
         .edit-sub-btn { width: 100%; padding: 8px; background: white; border: 1px solid var(--primary); color: var(--primary-dark); border-radius: 6px; font-size: 13px; margin-bottom: 10px; cursor: pointer;}
 
         /* 计算器与模考卡片 */
@@ -71,7 +70,7 @@
         .calc-item { display: flex; flex-direction: column; font-size: 11px; color: #555;}
         .calc-item input { padding: 6px; border: 1px solid #ddd; border-radius: 4px; margin-top: 4px; text-align: center; font-size:12px; background: #fff;}
         .calc-btn { width: 100%; padding: 10px; background: var(--pink-accent); color: white; border: none; border-radius: 6px; font-weight: bold; margin-bottom: 10px; box-shadow: 0 2px 6px rgba(232,138,154,0.4);}
-        .chart-btn { width: 100%; padding: 10px; background: var(--primary); color: white; border: none; border-radius: 6px; font-weight: bold; margin-bottom: 10px; box-shadow: 0 2px 6px rgba(150,209,232,0.4);}
+        .chart-btn { width: 100%; padding: 10px; background: var(--primary-dark); color: white; border: none; border-radius: 6px; font-weight: bold; margin-bottom: 10px; box-shadow: 0 2px 6px rgba(150,209,232,0.4);}
         
         .mock-input-row { display: flex; gap: 10px; margin-bottom: 10px; }
         .mock-input-row input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 6px; text-align: center;}
@@ -89,18 +88,18 @@
         .close-btn { width: 100%; padding: 12px; background: #f0f0f0; border: none; border-radius: 8px; font-size: 16px; margin-top: 10px; color: #555;}
         .target-input-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 14px;}
         .target-input-row input { width: 60px; padding: 5px; text-align: center; border: 1px solid #ccc; border-radius: 4px; }
-        .save-btn { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; margin-top: 10px; }
+        .save-btn { width: 100%; padding: 12px; background: var(--primary-dark); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-    <div id="overview" class="status-danger">
+    <div id="overview" class="bg-incomplete">
         <div id="date-display"></div>
         <div class="hp-container">
             <div class="hp-fill" id="hp-fill"></div>
             <div class="hp-text" id="hp-text">计算中...</div>
         </div>
-        <h1 id="quote-msg">行百里者半九十</h1>
+        <h1 id="quote-msg">行百里者半九十 😭</h1>
         <div id="daily-progress">0.0 / 0.0 h</div>
         <div class="total-progress">全局总进度: <span id="total-done">0</span> / <span id="total-target">225</span> 小时</div>
     </div>
@@ -154,7 +153,6 @@
     <!-- 各种弹窗遮罩 -->
     <div class="modal-overlay" id="overlay" onclick="closeAllModals()"></div>
     
-    <!-- 打卡时间弹窗 -->
     <div class="modal" id="time-modal">
         <div class="modal-title" id="time-modal-title" style="font-weight:bold; text-align:center; margin-bottom:15px;">记录时长</div>
         <div class="quick-add-grid">
@@ -165,7 +163,6 @@
         <button class="close-btn" onclick="closeAllModals()">取消</button>
     </div>
 
-    <!-- 修改目标弹窗 -->
     <div class="modal" id="target-modal">
         <div class="modal-title" id="target-modal-title" style="font-weight:bold; text-align:center; margin-bottom:15px;">调整细分目标时间</div>
         <div id="target-input-list"></div>
@@ -173,7 +170,6 @@
         <button class="close-btn" onclick="closeAllModals()">取消</button>
     </div>
 
-    <!-- 图表展示弹窗 -->
     <div class="modal" id="chart-modal">
         <div class="chart-container">
             <canvas id="myCanvas"></canvas>
@@ -182,17 +178,14 @@
     </div>
 
     <script>
-        // 日程表每日动态时长提取数据
         const scheduleData = {'10-29': 4.5, '10-30': 3.0, '10-31': 8.5, '11-01': 8.5, '11-02': 3.5, '11-03': 2.5, '11-04': 0.0, '11-05': 2.5, '11-06': 1.0, '11-07': 6.5, '11-08': 6.5, '11-09': 1.5, '11-10': 4.5, '11-11': 2.5, '11-12': 4.5, '11-13': 3.0, '11-14': 8.5, '11-15': 8.5, '11-16': 3.5, '11-17': 4.5, '11-18': 2.5, '11-19': 4.5, '11-20': 3.0, '11-21': 8.5, '11-22': 8.5, '11-23': 3.5, '11-24': 4.5, '11-25': 2.5, '11-26': 4.5, '11-27': 3.0, '11-28': 8.5, '11-29': 8.5, '11-30': 3.5, '12-01': 4.5, '12-02': 2.5, '12-03': 2.5, '12-04': 1.0, '12-05': 6.5, '12-06': 6.5, '12-07': 1.5, '12-08': 2.5, '12-09': 0.0, '12-10': 4.5, '12-11': 3.0, '12-12': 8.5, '12-13': 8.5, '12-14': 3.5, '12-15': 4.5, '12-16': 2.5, '12-17': 4.5, '12-18': 3.0, '12-19': 8.5, '12-20': 8.5};
         
-        // 动态获取今天的死线目标
         const todayObj = new Date();
         const mm = (todayObj.getMonth()+1).toString().padStart(2, '0');
         const dd = todayObj.getDate().toString().padStart(2, '0');
         const dateKey = `${mm}-${dd}`;
         const dailyTarget = scheduleData[dateKey] !== undefined ? scheduleData[dateKey] : 0.0;
 
-        // V4 级数据迁移保护
         let modules = JSON.parse(localStorage.getItem('examModulesV4'));
         if (!modules) {
             let oldData = JSON.parse(localStorage.getItem('examModulesV3')) || JSON.parse(localStorage.getItem('examModulesV2')) || JSON.parse(localStorage.getItem('examModules')); 
@@ -220,12 +213,10 @@
 
         let actMod = null; let actSub = null;
 
-        // 图表历史数据初始化
         let rateHistory = JSON.parse(localStorage.getItem('rateHistoryV4')) || { gj: [], zc: [], labels: [] };
         let mockHistory = JSON.parse(localStorage.getItem('mockHistoryV4')) || { gj: [], zc: [], labels: [] };
         let myChart = null;
 
-        // 恢复上次填写的正确率记录
         const rateInputs = ['gj-law','gj-pol','gj-calc','gj-doc','gj-econ','gj-sci','gj-cur','zc-yy','zc-cs','zc-tx','zc-dy','zc-lb','zc-lj','zc-zl','zc-sl'];
         rateInputs.forEach(id => {
             let saved = localStorage.getItem('save_'+id);
@@ -260,7 +251,7 @@
                 let pct = Math.min((mod.current/mod.target)*100, 100).toFixed(1);
                 
                 let subHtml = `<div class="sub-list" id="sublist-${mIndex}">
-                    <button class="edit-sub-btn" onclick="openTargetModal(${mIndex}, event)">✏️ 调整细分目标时间 (严密对齐总盘)</button>`;
+                    <button class="edit-sub-btn" onclick="openTargetModal(${mIndex}, event)">✏️ 调整细分目标时间</button>`;
                 
                 mod.subs.forEach((sub, sIndex) => {
                     let displayTarget = sub.name.includes("历史记录") ? "0(不占指标)" : sub.t + "h";
@@ -276,7 +267,7 @@
                     <div class="card">
                         <div class="card-header" onclick="toggleSub(${mIndex})">
                             <div class="card-left">
-                                <div class="card-title">${mod.name} <span style="font-size:12px; color:#aaa;">(点击展开细分▼)</span></div>
+                                <div class="card-title">${mod.name} <span style="font-size:12px; color:#aaa;">(点击展开▼)</span></div>
                                 <div class="card-stats">进度: ${mod.current.toFixed(1)} / ${mod.target}h</div>
                                 <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: ${pct}%"></div></div>
                             </div>
@@ -293,13 +284,25 @@
 
             const overview = document.getElementById('overview');
             const msg = document.getElementById('quote-msg');
-            // 根据提取排班表的可用时间判断
-            if (todayLogged >= dailyTarget && dailyTarget > 0) {
-                overview.className = 'status-success'; msg.innerText = "为者常成，行者常至";
-            } else if (dailyTarget === 0) {
-                overview.className = 'status-success'; msg.innerText = "今日休整，养精蓄锐";
+            
+            overview.classList.remove('bg-incomplete', 'bg-complete');
+
+            if (dailyTarget === 0) {
+                overview.classList.add('bg-complete');
+                msg.innerHTML = "今日休整，养精蓄锐 🥳";
+                msg.style.color = "var(--success-text)";
+            } else if (todayLogged >= dailyTarget) {
+                overview.classList.add('bg-complete');
+                msg.innerHTML = "为者常成，行者常至 😆";
+                msg.style.color = "var(--success-text)";
+            } else if (todayLogged >= dailyTarget / 2) {
+                overview.classList.add('bg-incomplete');
+                msg.innerHTML = "行百里者半九十，继续冲！🥺";
+                msg.style.color = "var(--danger-text)";
             } else {
-                overview.className = 'status-danger'; msg.innerText = "行百里者半九十";
+                overview.classList.add('bg-incomplete');
+                msg.innerHTML = "行百里者半九十，不能拖了！😭";
+                msg.style.color = "var(--danger-text)";
             }
 
             localStorage.setItem('examModulesV4', JSON.stringify(modules));
@@ -352,7 +355,6 @@
             document.getElementById('overlay').classList.remove('active');
         }
 
-        // 保存测算与正确率
         function saveAndCalcRates() {
             rateInputs.forEach(id => {
                 localStorage.setItem('save_'+id, document.getElementById(id).value || '');
@@ -370,7 +372,6 @@
             alert(`已测算并存入历史！\n预测公基：${gjScore.toFixed(2)}分\n预测职测：${zcScore.toFixed(2)}分`);
         }
 
-        // 保存真实模考
         function saveMockScore() {
             let gj = parseFloat(document.getElementById('mock-gj').value);
             let zc = parseFloat(document.getElementById('mock-zc').value);
@@ -385,7 +386,6 @@
             document.getElementById('mock-zc').value = '';
         }
 
-        // 渲染图表
         function showChart(type) {
             document.getElementById('chart-modal').classList.add('active');
             document.getElementById('overlay').classList.add('active');
