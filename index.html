@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>考研/考试 极简工作台 V5</title>
+    <title>考研/考试 极简工作台 V6</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            var(--bg-color): #fafafa;
-            --card-bg: rgba(255, 255, 255, 0.9);
+            --bg-color: #fafafa;
+            --card-bg: rgba(255, 255, 255, 0.95);
             --primary: #96D1E8;      
             --primary-dark: #6ebcd9;
             --pink-accent: #E88A9A;  
@@ -19,7 +19,7 @@
         
         body { 
             background: linear-gradient(135deg, rgba(232,138,154,0.15) 0%, rgba(150,209,232,0.15) 100%); 
-            color: #333; padding-bottom: 80px; min-height: 100vh;
+            color: #333; padding-bottom: 90px; min-height: 100vh;
         }
         
         #overview {
@@ -42,7 +42,7 @@
         .hp-text { position: absolute; width: 100%; text-align: center; color: white; font-size: 12px; line-height: 20px; font-weight: bold; top: 0; left: 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.6);}
 
         .container { padding: 15px; }
-        .card { background: var(--card-bg); border-radius: 12px; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(150,209,232,0.15); overflow: hidden; border: 1px solid rgba(255,255,255,0.6); backdrop-filter: blur(5px);}
+        .card { background: var(--card-bg); border-radius: 12px; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(150,209,232,0.15); overflow: hidden; border: 1px solid rgba(255,255,255,0.8); backdrop-filter: blur(5px);}
         .card-header { padding: 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
         .card-left { flex: 1; }
         .card-title { font-size: 16px; font-weight: bold; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; color: #444;}
@@ -51,7 +51,7 @@
         .progress-bar-bg { width: 100%; height: 6px; background: #eef1f5; border-radius: 3px; overflow: hidden; }
         .progress-bar-fill { height: 100%; background: var(--primary-dark); transition: width 0.3s; }
         
-        .sub-list { background: rgba(255,255,255,0.6); padding: 10px 15px; border-top: 1px solid #f0f0f0; display: none; }
+        .sub-list { background: rgba(255,255,255,0.7); padding: 10px 15px; border-top: 1px solid #f0f0f0; display: none; }
         .sub-list.active { display: block; }
         .sub-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px dashed #ddd; }
         .sub-item:last-child { border-bottom: none; }
@@ -60,27 +60,32 @@
         .add-btn { background: var(--primary-dark); color: white; border: none; width: 28px; height: 28px; border-radius: 14px; font-size: 18px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(150,209,232,0.5); }
         .edit-sub-btn { width: 100%; padding: 8px; background: white; border: 1px solid var(--primary); color: var(--primary-dark); border-radius: 6px; font-size: 13px; margin-bottom: 10px; cursor: pointer;}
 
-        .calc-card { background: rgba(255,255,255,0.85); border-radius: 12px; padding: 16px; margin-top: 20px; box-shadow: 0 4px 12px rgba(232,138,154,0.15); border: 1px solid rgba(232,138,154,0.3);}
+        /* 计算器与模考卡片防溢出优化 */
+        .calc-card { background: rgba(255,255,255,0.9); border-radius: 12px; padding: 20px; margin-top: 20px; box-shadow: 0 4px 12px rgba(232,138,154,0.15); border: 1px solid rgba(232,138,154,0.4); overflow: hidden; /* 防止内容穿透 */ }
         .calc-title { font-size: 16px; font-weight: bold; margin-bottom: 15px; text-align: center; color: var(--pink-accent); }
         
-        /* 手机防溢出 4列自适应网格 */
+        /* 预测分看板 */
+        .latest-score-board { background: rgba(232,138,154,0.1); border: 1px solid rgba(232,138,154,0.3); border-radius: 8px; padding: 12px; text-align: center; margin-bottom: 15px; }
+        .latest-score-label { font-size: 12px; color: #666; margin-bottom: 5px; }
+        .latest-score-values { font-size: 18px; font-weight: bold; color: var(--pink-accent); }
+        
         .calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 15px; }
         .calc-item { display: flex; flex-direction: column; font-size: 10px; color: #555; align-items: center;}
-        .calc-item input { width: 100%; padding: 6px 2px; border: 1px solid #ddd; border-radius: 4px; margin-top: 4px; text-align: center; font-size:12px; background: #fff;}
+        .calc-item input { width: 100%; padding: 8px 2px; border: 1px solid #ddd; border-radius: 4px; margin-top: 4px; text-align: center; font-size:13px; background: #fff;}
         
         .btn-group { display: flex; gap: 8px; margin-bottom: 10px;}
-        .calc-btn { flex: 1; padding: 10px 4px; background: var(--pink-accent); color: white; border: none; border-radius: 6px; font-size:12px; font-weight: bold; box-shadow: 0 2px 6px rgba(232,138,154,0.4);}
-        .chart-btn { flex: 1; padding: 10px 4px; background: var(--primary-dark); color: white; border: none; border-radius: 6px; font-size:12px; font-weight: bold; box-shadow: 0 2px 6px rgba(150,209,232,0.4);}
-        .hist-btn { width: 100%; padding: 8px; background: #f5f5f5; color: #666; border: 1px solid #ddd; border-radius: 6px; font-size:12px; margin-bottom: 10px;}
+        .calc-btn { flex: 1; padding: 12px 4px; background: var(--pink-accent); color: white; border: none; border-radius: 6px; font-size:13px; font-weight: bold; box-shadow: 0 2px 6px rgba(232,138,154,0.4);}
+        .chart-btn { flex: 1; padding: 12px 4px; background: var(--primary-dark); color: white; border: none; border-radius: 6px; font-size:13px; font-weight: bold; box-shadow: 0 2px 6px rgba(150,209,232,0.4);}
+        .hist-btn { width: 100%; padding: 10px; background: #f5f5f5; color: #666; border: 1px solid #ddd; border-radius: 6px; font-size:12px; margin-bottom: 5px;}
         
-        .mock-input-row { display: flex; gap: 10px; margin-bottom: 10px; }
-        .mock-input-row input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 6px; text-align: center;}
+        .mock-input-row { display: flex; gap: 10px; margin-bottom: 15px; }
+        .mock-input-row input { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 6px; text-align: center; font-size: 14px;}
 
-        /* 下拉历史记录清单 */
-        .history-list { display: none; margin-top: 10px; border-top: 1px dashed #ddd; padding-top: 10px; max-height: 180px; overflow-y: auto;}
+        /* 历史记录防溢出优化 */
+        .history-list { display: none; margin-top: 5px; border-top: 1px dashed #ddd; padding-top: 10px; max-height: 220px; overflow-y: auto; padding-bottom: 5px;}
         .history-list.active { display: block; }
-        .hist-row { display: flex; justify-content: space-between; font-size: 13px; padding: 8px 5px; border-bottom: 1px solid #f0f0f0; color: #555;}
-        .hist-date { color: #888; font-weight: bold; width: 55px;}
+        .hist-row { display: flex; justify-content: space-between; font-size: 13px; padding: 10px 5px; border-bottom: 1px solid #f0f0f0; color: #555;}
+        .hist-date { color: #888; font-weight: bold; width: 60px;}
         .hist-scores { flex:1; text-align: right; letter-spacing: 0.5px;}
 
         .modal { position: fixed; bottom: 0; left: 0; width: 100%; background: white; border-top-left-radius: 20px; border-top-right-radius: 20px; padding: 20px; box-shadow: 0 -4px 20px rgba(0,0,0,0.15); transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.1, 0.8, 0.3, 1); z-index: 100; max-height: 85vh; overflow-y: auto;}
@@ -116,7 +121,12 @@
     <div class="container">
         <!-- 自动估分正确率打卡 -->
         <div class="calc-card">
-            <div class="calc-title">📝 正确率估分器 (动态加权)</div>
+            <div class="calc-title">📝 正确率估分器</div>
+            
+            <div class="latest-score-board">
+                <div class="latest-score-label">当前综合加权预测分 (近3次动态平衡)</div>
+                <div class="latest-score-values">公基: <span id="disp-gj">--</span> 分 <span style="margin:0 10px; color:#ddd;">|</span> 职测: <span id="disp-zc">--</span> 分</div>
+            </div>
             
             <div style="font-weight:bold; font-size:12px; margin-bottom:5px; color:#444;">公基卷测算(%)</div>
             <div class="calc-grid">
@@ -153,8 +163,8 @@
         <div class="calc-card">
             <div class="calc-title">🏆 真实套卷模考成绩记录</div>
             <div class="mock-input-row">
-                <input type="number" id="mock-gj" placeholder="公基分数">
-                <input type="number" id="mock-zc" placeholder="职测分数">
+                <input type="number" id="mock-gj" placeholder="填入公基真实分数">
+                <input type="number" id="mock-zc" placeholder="填入职测真实分数">
             </div>
             <div class="btn-group">
                 <button class="calc-btn" onclick="saveMockScore()">记录成绩</button>
@@ -201,7 +211,6 @@
         const dateKey = `${mm}-${dd}`;
         const dailyTarget = scheduleData[dateKey] !== undefined ? scheduleData[dateKey] : 0.0;
 
-        // V5 保留了所有旧数据密钥
         let modules = JSON.parse(localStorage.getItem('examModulesV4'));
         if (!modules) {
             let oldData = JSON.parse(localStorage.getItem('examModulesV3')) || JSON.parse(localStorage.getItem('examModulesV2')) || JSON.parse(localStorage.getItem('examModules')); 
@@ -229,6 +238,17 @@
 
         let actMod = null; let actSub = null;
         let rateHistory = JSON.parse(localStorage.getItem('rateHistoryV4')) || { gj: [], zc: [], labels: [] };
+        
+        // V6 自动清洗错乱历史数据脚本
+        let needsSave = false;
+        for (let i = 0; i < rateHistory.labels.length; i++) {
+            if (rateHistory.labels[i] < "11-14" || parseFloat(rateHistory.gj[i]) > 100) {
+                rateHistory.gj[i] = "63.0";
+                needsSave = true;
+            }
+        }
+        if (needsSave) localStorage.setItem('rateHistoryV4', JSON.stringify(rateHistory));
+
         let mockHistory = JSON.parse(localStorage.getItem('mockHistoryV4')) || { gj: [], zc: [], labels: [] };
         let myChart = null;
 
@@ -377,14 +397,12 @@
             });
             
             const g = id => parseFloat(document.getElementById(id).value)||0;
-            // 修复 Bug：去掉了尾部的 * 100
             let rawGj = (g('gj-law')*0.24 + g('gj-pol')*0.20 + g('gj-calc')*0.144 + g('gj-doc')*0.088 + g('gj-econ')*0.058 + g('gj-sci')*0.094 + g('gj-cur')*0.018) / 0.842;
             let rawZc = (g('zc-yy')*0.28 + g('zc-cs')*0.175 + g('zc-tx')*0.09 + g('zc-dy')*0.04 + g('zc-lb')*0.06 + g('zc-lj')*0.045 + g('zc-zl')*0.20 + g('zc-sl')*0.11);
             
             let finalGj = rawGj; let finalZc = rawZc;
             let len = rateHistory.gj.length;
             
-            // 加权平均逻辑：近三次比重为 0.5, 0.25, 0.25
             if (len >= 2) {
                 finalGj = rawGj * 0.5 + parseFloat(rateHistory.gj[len-1]) * 0.25 + parseFloat(rateHistory.gj[len-2]) * 0.25;
                 finalZc = rawZc * 0.5 + parseFloat(rateHistory.zc[len-1]) * 0.25 + parseFloat(rateHistory.zc[len-2]) * 0.25;
@@ -424,7 +442,6 @@
         }
 
         function renderHistoryLists() {
-            // 渲染预测分明细（倒序）
             let rateHtml = '';
             for(let i = rateHistory.labels.length - 1; i >= 0; i--) {
                 rateHtml += `<div class="hist-row">
@@ -434,7 +451,6 @@
             }
             document.getElementById('rate-history-list').innerHTML = rateHtml || '<div style="text-align:center; color:#999; font-size:12px;">暂无记录</div>';
 
-            // 渲染模考明细（倒序）
             let mockHtml = '';
             for(let i = mockHistory.labels.length - 1; i >= 0; i--) {
                 mockHtml += `<div class="hist-row">
@@ -443,6 +459,15 @@
                 </div>`;
             }
             document.getElementById('mock-history-list').innerHTML = mockHtml || '<div style="text-align:center; color:#999; font-size:12px;">暂无记录</div>';
+            
+            let rLen = rateHistory.labels.length;
+            if (rLen > 0) {
+                document.getElementById('disp-gj').innerText = rateHistory.gj[rLen-1];
+                document.getElementById('disp-zc').innerText = rateHistory.zc[rLen-1];
+            } else {
+                document.getElementById('disp-gj').innerText = '--';
+                document.getElementById('disp-zc').innerText = '--';
+            }
         }
 
         function showChart(type) {
@@ -467,12 +492,7 @@
                     responsive: true, maintainAspectRatio: false,
                     layout: { padding: { left: 10, right: 15, top: 10, bottom: 10 } },
                     plugins: { title: { display: true, text: titleText, font: {size: 15} } },
-                    scales: { 
-                        y: { 
-                            min: 58, 
-                            suggestedMax: 80 // 使用 suggestedMax 以防超常发挥被切掉
-                        } 
-                    }
+                    scales: { y: { min: 58, suggestedMax: 80 } }
                 }
             });
         }
