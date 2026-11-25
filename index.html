@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>四川事业编 冲刺148工作台 V7</title>
+    <title>四川事业编 冲刺148工作台 V7.1</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
@@ -41,7 +41,12 @@
         
         #date-display { font-size: 13px; opacity: 0.92; margin-bottom: 8px; font-weight: bold; }
         #quote-msg { font-size: 19px; margin: 8px 0; letter-spacing: 1px; font-weight: 900; text-shadow: 1px 1px 4px rgba(0,0,0,0.28); }
-        #daily-progress { font-size: 30px; font-weight: bold; margin: 4px 0; text-shadow: 1px 1px 3px rgba(0,0,0,0.2); }
+        .daily-row { display: flex; justify-content: center; align-items: center; gap: 10px; margin: 4px 0; }
+        #daily-progress { font-size: 30px; font-weight: bold; text-shadow: 1px 1px 3px rgba(0,0,0,0.2); }
+        .edit-daily-btn {
+            background: rgba(255,255,255,0.25); color: white; border: 1px solid rgba(255,255,255,0.5);
+            border-radius: 12px; padding: 3px 9px; font-size: 11px; font-weight: bold; cursor: pointer;
+        }
         .total-progress { font-size: 13px; margin-top: 8px; opacity: 0.95; line-height: 1.5; }
 
         .hp-container { margin: 12px auto; width: 100%; max-width: 350px; background: rgba(0,0,0,0.2); border-radius: 10px; position: relative; overflow: hidden; height: 20px; box-shadow: inset 0 0 5px rgba(0,0,0,0.3); }
@@ -50,19 +55,19 @@
 
         .container { padding: 14px 14px 0 14px; }
 
-        /* 每日勾选与周期提醒卡片 */
+        /* 每日勾选与周期提醒 */
         .routine-card {
             background: var(--card-bg); border-radius: 14px; padding: 14px;
             margin-bottom: 14px; box-shadow: 0 4px 12px rgba(150,209,232,0.18);
             border: 1px solid rgba(255,255,255,0.8);
         }
         .section-head { font-size: 14px; font-weight: bold; color: #444; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
-        .check-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
+        .check-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 10px; }
         .check-pill {
-            display: flex; align-items: center; justify-content: center; gap: 4px;
-            padding: 9px 4px; border-radius: 8px; font-size: 12px; font-weight: bold;
+            display: flex; align-items: center; justify-content: center; gap: 5px;
+            padding: 10px 6px; border-radius: 10px; font-size: 13px; font-weight: bold;
             background: #f4f7f9; color: #666; border: 1px solid #e2e8f0; cursor: pointer;
-            transition: all 0.2s; user-select: none; text-align: center;
+            transition: all 0.2s; user-select: none;
         }
         .check-pill.done { background: rgba(232,138,154,0.18); color: var(--pink-dark); border-color: var(--pink-accent); }
         
@@ -75,7 +80,7 @@
         .strip-alert { background: var(--alert-bg); color: var(--alert-text); border: 1px solid var(--alert-border); }
 
         .report-btn {
-            width: 100%; margin-top: 10px; padding: 9px; border-radius: 8px; border: none;
+            width: 100%; margin-top: 10px; padding: 10px; border-radius: 8px; border: none;
             background: linear-gradient(90deg, var(--primary-dark), var(--pink-accent));
             color: white; font-size: 12px; font-weight: bold; cursor: pointer;
         }
@@ -116,7 +121,7 @@
         .add-btn { background: var(--primary-dark); color: white; border: none; width: 28px; height: 28px; border-radius: 14px; font-size: 18px; font-weight: bold; cursor: pointer; flex-shrink: 0; }
         .edit-sub-btn { width: 100%; padding: 7px; background: white; border: 1px solid var(--primary); color: var(--primary-dark); border-radius: 6px; font-size: 12px; margin-bottom: 8px; cursor: pointer; }
 
-        /* 计算器与模考卡片（防穿模修复） */
+        /* 计算器与模考卡片 */
         .calc-card { background: var(--card-bg); border-radius: 14px; padding: 16px; margin-bottom: 14px; box-shadow: 0 4px 12px rgba(232,138,154,0.14); border: 1px solid rgba(232,138,154,0.35); overflow: hidden; }
         .calc-title { font-size: 15px; font-weight: bold; margin-bottom: 12px; text-align: center; color: var(--pink-dark); }
         
@@ -130,7 +135,6 @@
         .chart-btn { flex: 1; min-width: 0; padding: 11px 4px; background: var(--primary-dark); color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; }
         .hist-btn { width: 100%; padding: 9px; background: #f6f8fa; color: #666; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 12px; margin-bottom: 4px; cursor: pointer; }
         
-        /* 关键修复：min-width:0 防止移动端输入框撑破右边 */
         .mock-input-row { display: flex; gap: 8px; margin-bottom: 12px; width: 100%; }
         .mock-input-row input { flex: 1; min-width: 0; width: 100%; padding: 10px 6px; border: 1px solid #ddd; border-radius: 8px; text-align: center; font-size: 13px; background: #fff; }
 
@@ -147,311 +151,4 @@
         .backup-textarea { width: 100%; height: 68px; margin-top: 8px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 11px; font-family: monospace; }
 
         /* 弹窗 */
-        .modal { position: fixed; bottom: 0; left: 0; width: 100%; background: white; border-top-left-radius: 20px; border-top-right-radius: 20px; padding: 20px; box-shadow: 0 -4px 20px rgba(0,0,0,0.15); transform: translateY(100%); transition: transform 0.3s ease; z-index: 100; max-height: 85vh; overflow-y: auto; }
-        .modal.active { transform: translateY(0); }
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; z-index: 99; backdrop-filter: blur(2px); }
-        .modal-overlay.active { display: block; }
-        .chart-container { position: relative; height: 300px; width: 100%; margin-bottom: 12px; }
-        .quick-add-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 12px; }
-        .quick-btn { padding: 12px; background: rgba(150,209,232,0.18); border: none; border-radius: 8px; font-size: 16px; color: var(--primary-dark); font-weight: bold; }
-        .close-btn { width: 100%; padding: 11px; background: #f0f0f0; border: none; border-radius: 8px; font-size: 15px; margin-top: 8px; color: #555; }
-        .target-input-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 13px; }
-        .target-input-row input { width: 65px; padding: 6px; text-align: center; border: 1px solid #ccc; border-radius: 6px; }
-        .save-btn { width: 100%; padding: 12px; background: var(--primary-dark); color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: bold; margin-top: 8px; }
-    </style>
-</head>
-<body>
-
-    <div id="overview" class="bg-incomplete">
-        <div id="date-display"></div>
-        <div class="hp-container">
-            <div class="hp-fill" id="hp-fill"></div>
-            <div class="hp-text" id="hp-text">计算中...</div>
-        </div>
-        <h1 id="quote-msg">行百里者半九十 😭</h1>
-        <div id="daily-progress">0.0 / 0.0 h</div>
-        <div class="total-progress">
-            冲刺30天进度：<span id="total-done">0.0</span> / <span id="total-target">130.0</span> h<br>
-            <span style="font-size:11px; opacity:0.85;">（含前期已存档 90.0h，总累计 <span id="grand-total">90.0</span> h）</span>
-        </div>
-    </div>
-
-    <div class="container">
-        <!-- 每日勾选 + 法律轮动 + 每周2次模考监控 -->
-        <div class="routine-card">
-            <div class="section-head">
-                <span>✅ 今日必做勾选（每日零点重置）</span>
-                <span id="check-count" style="font-size:12px; color:#888;">0/3</span>
-            </div>
-            <div class="check-grid">
-                <div class="check-pill" id="chk-math" onclick="toggleDailyCheck('math')">⬜ 数资推日练</div>
-                <div class="check-pill" id="chk-pol" onclick="toggleDailyCheck('pol')">⬜ 早间政治时政</div>
-                <div class="check-pill" id="chk-rev" onclick="toggleDailyCheck('rev')">⬜ 晚间30分复盘</div>
-            </div>
-            <div id="law-alert" class="alert-strip strip-ok">⚖️ 法律轮动状态检测中...</div>
-            <div id="mock-alert" class="alert-strip strip-alert">📝 本周模考：0 / 2 次（未达标！考完速报分）</div>
-            <button class="report-btn" onclick="copySupervisorReport()">📋 一键复制今日战报（发给小G查账）</button>
-        </div>
-
-        <!-- 148分红线预测看板 -->
-        <div class="score-banner">
-            <div class="score-banner-title">🎯 双科综合预测总分（安全红线：148.0 分）</div>
-            <div class="score-big"><span id="banner-total">129.8</span> / 200</div>
-            <div class="score-sub">公基(近3次加权)：<b id="banner-gj">69.3</b> 分 &nbsp;|&nbsp; 综测(最新三题)：<b id="banner-zc">60.5</b> 分</div>
-            <div id="banner-gap" class="score-gap gap-need">距离 148 分还差 18.2 分</div>
-        </div>
-    </div>
-
-    <!-- 130h 冲刺板块列表 -->
-    <div class="container" id="module-list"></div>
-
-    <div class="container">
-        <!-- 公基正确率估分器 -->
-        <div class="calc-card">
-            <div class="calc-title">📝 公基正确率估分（两场省属联考均分权重）</div>
-            <div class="calc-grid">
-                <div class="calc-item">法律(22.5) <input type="number" id="gj-law" placeholder="%"></div>
-                <div class="calc-item">政治(21.9) <input type="number" id="gj-pol" placeholder="%"></div>
-                <div class="calc-item">数资推(16.2) <input type="number" id="gj-zc" placeholder="%"></div>
-                <div class="calc-item">科技文史(13.6) <input type="number" id="gj-kj" placeholder="%"></div>
-                <div class="calc-item">经管(10.5) <input type="number" id="gj-jg" placeholder="%"></div>
-                <div class="calc-item">公文(8.8) <input type="number" id="gj-gw" placeholder="%"></div>
-                <div class="calc-item">时政省情(6.5) <input type="number" id="gj-sz" placeholder="%"></div>
-            </div>
-            <div class="btn-group">
-                <button class="calc-btn" onclick="saveGjRate()">保存公基加权分</button>
-                <button class="chart-btn" onclick="showChart('total')">📈 148红线走势</button>
-            </div>
-            <button class="hist-btn" onclick="toggleHistory('gjrate')">🔽 展开/收起 公基加权预测明细</button>
-            <div id="gjrate-history-list" class="history-list"></div>
-        </div>
-
-        <!-- 综测三道大题分题记录（无正确率，只录分数） -->
-        <div class="calc-card">
-            <div class="calc-title">✍️ 综测三道大题得分记录（只录分数）</div>
-            <div class="calc-grid-3">
-                <div class="calc-item">论证评价(20分) <input type="number" step="0.5" id="zc-p1" placeholder="分"></div>
-                <div class="calc-item">提出对策(30分) <input type="number" step="0.5" id="zc-p2" placeholder="分"></div>
-                <div class="calc-item">议论文(50分) <input type="number" step="0.5" id="zc-p3" placeholder="分"></div>
-            </div>
-            <div class="btn-group">
-                <button class="calc-btn" onclick="saveZcScore()">记录综测得分</button>
-                <button class="chart-btn" onclick="showChart('single')">📈 公基vs综测走势</button>
-            </div>
-            <button class="hist-btn" onclick="toggleHistory('zcscore')">🔽 展开/收起 综测分题历史明细</button>
-            <div id="zcscore-history-list" class="history-list"></div>
-        </div>
-
-        <!-- 双科真实套卷模考（每周至少2次） -->
-        <div class="calc-card">
-            <div class="calc-title">🏆 真实套卷模考记录（每周硬指标 ≥ 2次）</div>
-            <div class="mock-input-row">
-                <input type="number" step="0.5" id="mock-gj" placeholder="公基真实分">
-                <input type="number" step="0.5" id="mock-zc" placeholder="综测真实分">
-            </div>
-            <div class="btn-group">
-                <button class="calc-btn" onclick="saveMockScore()">记录本次模考</button>
-                <button class="chart-btn" onclick="showChart('mock')">📈 真实模考曲线</button>
-            </div>
-            <button class="hist-btn" onclick="toggleHistory('mock')">🔽 展开/收起 真实模考明细</button>
-            <div id="mock-history-list" class="history-list"></div>
-        </div>
-
-        <!-- 前期 90 小时记录归档 & 一键导出/恢复备份 -->
-        <div class="archive-card">
-            <div class="section-head" style="margin-bottom:0; cursor:pointer;" onclick="document.getElementById('archive-body').classList.toggle('active')">
-                <span>📦 前期记录归档（90.0h）与数据备份 ▼</span>
-            </div>
-            <div id="archive-body" class="archive-body">
-                <p><b>✅ 已安全封存的前期战绩（截至 11月25日）：</b></p>
-                <p>• 累计已学习时长：<b>90.0 小时</b>（法律课已完、中特课已完、前期职测资料分析稳80%+）</p>
-                <p>• 原公基/职测快照：原公基加权 68.3分 ｜ 原职测 70.9分（已归档）</p>
-                <p>• 新起点基线：公基 69.3分 ｜ 综测 60.5分（14.5 + 21 + 25）</p>
-                <div class="btn-group" style="margin-top:10px;">
-                    <button class="chart-btn" onclick="exportBackup()">💾 下载JSON存档</button>
-                    <button class="calc-btn" onclick="copyBackupText()">📋 复制存档码</button>
-                </div>
-                <textarea id="backup-input" class="backup-textarea" placeholder="如需换手机恢复数据，把之前复制的存档码粘贴到这里，再点下方恢复按钮"></textarea>
-                <button class="hist-btn" style="margin-top:6px;" onclick="restoreBackupText()">📂 从存档码恢复数据</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 弹窗组件 -->
-    <div class="modal-overlay" id="overlay" onclick="closeAllModals()"></div>
-
-    <div class="modal" id="time-modal">
-        <div id="time-modal-title" style="font-weight:bold; text-align:center; margin-bottom:14px;">记录时长</div>
-        <div class="quick-add-grid">
-            <button class="quick-btn" onclick="commitTime(0.5)">+ 0.5h</button>
-            <button class="quick-btn" onclick="commitTime(1.0)">+ 1.0h</button>
-            <button class="quick-btn" onclick="commitTime(2.0)">+ 2.0h</button>
-        </div>
-        <button class="close-btn" onclick="closeAllModals()">取消</button>
-    </div>
-
-    <div class="modal" id="target-modal">
-        <div id="target-modal-title" style="font-weight:bold; text-align:center; margin-bottom:14px;">调整细分目标</div>
-        <div id="target-input-list"></div>
-        <button class="save-btn" onclick="saveTargets()">保存并重新核算</button>
-        <button class="close-btn" onclick="closeAllModals()">取消</button>
-    </div>
-
-    <div class="modal" id="chart-modal">
-        <div class="chart-container"><canvas id="myCanvas"></canvas></div>
-        <button class="close-btn" onclick="closeAllModals()">关闭图表</button>
-    </div>
-
-    <script>
-        // 11.25 - 12.24 每日排班时长（已含 12.03-12.09 月报加班期）
-        const scheduleData = {
-            '11-25': 2.5, '11-26': 4.5, '11-27': 3.0, '11-28': 8.5, '11-29': 8.5, '11-30': 3.5,
-            '12-01': 4.5, '12-02': 2.5, '12-03': 2.5, '12-04': 1.0, '12-05': 6.5, '12-06': 6.5,
-            '12-07': 1.5, '12-08': 2.5, '12-09': 0.0, '12-10': 4.5, '12-11': 3.0, '12-12': 8.5,
-            '12-13': 8.5, '12-14': 3.5, '12-15': 4.5, '12-16': 2.5, '12-17': 4.5, '12-18': 3.0,
-            '12-19': 8.5, '12-20': 8.5, '12-21': 3.5, '12-22': 4.5, '12-23': 2.5, '12-24': 4.5,
-            '12-25': 0.0, '12-26': 0.0
-        };
-
-        const PRIOR_ARCHIVED_HOURS = 90.0;
-        const todayObj = new Date();
-        const mm = (todayObj.getMonth() + 1).toString().padStart(2, '0');
-        const dd = todayObj.getDate().toString().padStart(2, '0');
-        const dateKey = `${mm}-${dd}`;
-        const todayISO = `${todayObj.getFullYear()}-${mm}-${dd}`;
-        const dailyTarget = scheduleData[dateKey] !== undefined ? scheduleData[dateKey] : 3.0;
-
-        // 获取当前ISO周标识（周一为一周开始）
-        function getWeekKey(d) {
-            const temp = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-            const dayNum = temp.getUTCDay() || 7;
-            temp.setUTCDate(temp.getUTCDate() + 4 - dayNum);
-            const yearStart = new Date(Date.UTC(temp.getUTCFullYear(), 0, 1));
-            const weekNo = Math.ceil((((temp - yearStart) / 86400000) + 1) / 7);
-            return `${temp.getUTCFullYear()}-W${weekNo}`;
-        }
-        const currentWeekKey = getWeekKey(todayObj);
-
-        // V7 冲刺130小时板块初始化
-        const defaultModulesV7 = [
-            { id: 1, type: 'zc', name: "综测：论证评价题 (20分)", subs: [{name:"方法与漏洞类型", t:3, c:0}, {name:"刷题套模板", t:7, c:0}] },
-            { id: 2, type: 'zc', name: "综测：提出对策题 (30分)", subs: [{name:"材料提炼要点框架", t:4, c:0}, {name:"去口语化规范表达实操", t:10, c:0}] },
-            { id: 3, type: 'zc', name: "综测：议论文写作 (50分·提分大头)", subs: [{name:"立意与总分论点框架", t:4, c:0}, {name:"动笔写提纲与成文", t:14, c:0}] },
-            { id: 4, type: 'gj', name: "公基：公文突击 (8.8分·当前40%)", subs: [{name:"集中听课与15种格式背诵", t:5, c:0}, {name:"公文易错题刷题", t:5, c:0}] },
-            { id: 5, type: 'gj', name: "公基：职测数资推日练 (16.2分)", subs: [{name:"判断推理看资料", t:6, c:0}, {name:"资料/数量/推理每日刷题", t:14, c:0}] },
-            { id: 6, type: 'gj', name: "公基：法律轮动刷题 (22.5分)", subs: [{name:"民/刑/行政法轮动刷题", t:11, c:0}, {name:"法律错题回顾", t:5, c:0}] },
-            { id: 7, type: 'gj', name: "公基：政治与时政省情 (28.4分)", subs: [{name:"新思想/马哲随机刷题", t:10, c:0}, {name:"早间时政与四川省情", t:6, c:0}] },
-            { id: 8, type: 'both', name: "双科全真模考与复盘", subs: [{name:"公基全真套卷与精批", t:13, c:0}, {name:"综测全真套卷与精批", t:13, c:0}] }
-        ];
-
-        let modules = JSON.parse(localStorage.getItem('examModulesV7')) || JSON.parse(JSON.stringify(defaultModulesV7));
-
-        // 今日时长重置
-        let storedDate = localStorage.getItem('lastDateV7');
-        let todayLogged = parseFloat(localStorage.getItem('todayLoggedV7')) || 0;
-        let dailyChecks = JSON.parse(localStorage.getItem('dailyChecksV7')) || { math: false, pol: false, rev: false };
-        if (storedDate !== todayISO) {
-            todayLogged = 0;
-            dailyChecks = { math: false, pol: false, rev: false };
-            localStorage.setItem('lastDateV7', todayISO);
-            localStorage.setItem('todayLoggedV7', 0);
-            localStorage.setItem('dailyChecksV7', JSON.stringify(dailyChecks));
-        }
-
-        // 法律轮动日期记录
-        let lawLastDate = localStorage.getItem('lawLastDateV7') || todayISO;
-
-        // 公基正确率初始值（直接录入你 11.25 的真实基线）
-        const defaultGjInputs = { 'gj-law': 71, 'gj-pol': 62, 'gj-zc': 90, 'gj-kj': 71, 'gj-jg': 83, 'gj-gw': 40, 'gj-sz': 50 };
-        Object.keys(defaultGjInputs).forEach(id => {
-            let v = localStorage.getItem('v7_' + id);
-            document.getElementById(id).value = (v !== null && v !== '') ? v : defaultGjInputs[id];
-        });
-
-        // 综测三题初始值（14.5, 21, 25）
-        const defaultZcInputs = { 'zc-p1': 14.5, 'zc-p2': 21, 'zc-p3': 25 };
-        Object.keys(defaultZcInputs).forEach(id => {
-            let v = localStorage.getItem('v7_' + id);
-            document.getElementById(id).value = (v !== null && v !== '') ? v : defaultZcInputs[id];
-        });
-
-        // 历史记录初始化（内置你的初始基线）
-        let gjRateHist = JSON.parse(localStorage.getItem('gjRateHistV7')) || [{ date: '11-25', score: 69.3, note: '新权重基线' }];
-        let zcScoreHist = JSON.parse(localStorage.getItem('zcScoreHistV7')) || [{ date: '11-25', p1: 14.5, p2: 21, p3: 25, total: 60.5 }];
-        let mockHist = JSON.parse(localStorage.getItem('mockHistV7')) || [];
-
-        let actMod = null, actSub = null, myChart = null;
-
-        function updateDatesAndHP() {
-            const days = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"];
-            document.getElementById('date-display').innerText = `${todayObj.getMonth()+1}月${todayObj.getDate()}日 ${days[todayObj.getDay()]} · 冲刺148分`;
-            
-            const start = new Date('2026-11-25T00:00:00');
-            const end = new Date('2026-12-26T00:00:00');
-            const totalDays = Math.ceil((end - start) / 86400000);
-            const leftDays = Math.ceil((end - todayObj) / 86400000);
-            const hp = Math.min(100, Math.max(0, (leftDays / totalDays) * 100));
-            document.getElementById('hp-fill').style.width = hp + '%';
-            document.getElementById('hp-text').innerText = `距12.26考试 剩 ${Math.max(0, leftDays)} 天（12.24晚收官）`;
-        }
-
-        function updateRoutineAlerts() {
-            // 勾选条状态
-            const map = { math: '数资推日练', pol: '早间政治时政', rev: '晚间30分复盘' };
-            let doneCnt = 0;
-            Object.keys(map).forEach(k => {
-                const el = document.getElementById('chk-' + k);
-                if (dailyChecks[k]) {
-                    el.classList.add('done');
-                    el.innerText = '✅ ' + map[k];
-                    doneCnt++;
-                } else {
-                    el.classList.remove('done');
-                    el.innerText = '⬜ ' + map[k];
-                }
-            });
-            document.getElementById('check-count').innerText = `${doneCnt}/3`;
-
-            // 法律轮动天数检测
-            const lawDiff = Math.floor((new Date(todayISO) - new Date(lawLastDate)) / 86400000);
-            const lawEl = document.getElementById('law-alert');
-            if (lawDiff >= 3) {
-                lawEl.className = 'alert-strip strip-warn';
-                lawEl.innerHTML = `<span>⚠️ 法律已 ${lawDiff} 天未刷题，今天必须轮动！</span><span>去刷题</span>`;
-            } else {
-                lawEl.className = 'alert-strip strip-ok';
-                lawEl.innerHTML = `<span>⚖️ 法律轮动正常（距上次 ${Math.max(0, lawDiff)} 天）</span><span>2-3天/轮</span>`;
-            }
-
-            // 本周模考次数检测（至少2次）
-            const weekMocks = mockHist.filter(m => m.week === currentWeekKey).length;
-            const mockEl = document.getElementById('mock-alert');
-            if (weekMocks >= 2) {
-                mockEl.className = 'alert-strip strip-ok';
-                mockEl.innerHTML = `<span>🏆 本周模考：${weekMocks} / 2 次（已达标！）</span><span>继续保持</span>`;
-            } else {
-                mockEl.className = 'alert-strip strip-alert';
-                mockEl.innerHTML = `<span>🚨 本周模考：${weekMocks} / 2 次（还差 ${2 - weekMocks} 次！）</span><span>考完速报分</span>`;
-            }
-        }
-
-        function toggleDailyCheck(key) {
-            dailyChecks[key] = !dailyChecks[key];
-            localStorage.setItem('dailyChecksV7', JSON.stringify(dailyChecks));
-            updateRoutineAlerts();
-        }
-
-        function updateScoreBanner() {
-            const latestGj = gjRateHist.length ? parseFloat(gjRateHist[gjRateHist.length - 1].score) : 69.3;
-            const latestZc = zcScoreHist.length ? parseFloat(zcScoreHist[zcScoreHist.length - 1].total) : 60.5;
-            const total = latestGj + latestZc;
-            const diff = 148 - total;
-
-            document.getElementById('banner-gj').innerText = latestGj.toFixed(1);
-            document.getElementById('banner-zc').innerText = latestZc.toFixed(1);
-            document.getElementById('banner-total').innerText = total.toFixed(1);
-
-            const gapEl = document.getElementById('banner-gap');
-            if (diff <= 0) {
-                gapEl.className = 'score-gap gap-pass';
-                gapEl.inner
+        .modal { position: fixed; bottom: 0; left: 0; width: 100%; background: white; border-top-left-radius: 20px
